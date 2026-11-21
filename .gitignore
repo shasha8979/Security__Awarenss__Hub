@@ -1,0 +1,18 @@
+# Archivos temporales y registros
+*.log
+*.tmp
+
+# Configuracion local
+.vscode/
+.idea/
+
+# Maven y compilaciones
+**/target/
+**/build/
+
+# Archivos generados por Vaadin
+**/src/main/frontend/generated/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
