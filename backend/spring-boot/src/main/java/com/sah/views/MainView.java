@@ -1,7 +1,9 @@
 
 package com.sah.views;
+import com.sah.repository.EmpresaRepository;
 import com.sah.repository.UsuarioRepository;
-import com.vaadin.flow.component.applayout.AppLayout;
+import com.sah.repository.CursoRepository;
+import com.sah.repository.EvaluacionRepository;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
@@ -23,21 +25,28 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @Route("")
 @PageTitle("Dashboard | Security Awareness Hub")
 @RolesAllowed("ROLE_ADMIN")
-public class MainView extends AppLayout {
+public class MainView extends MainLayout {
 private final UsuarioRepository usuarioRepository;
-
+private final EmpresaRepository empresaRepository;
+private final CursoRepository cursoRepository;
+private final EvaluacionRepository evaluacionRepository;
     
-    public MainView(UsuarioRepository usuarioRepository) {
+public MainView(
+        UsuarioRepository usuarioRepository,
+        EmpresaRepository empresaRepository,
+        CursoRepository cursoRepository,
+        EvaluacionRepository evaluacionRepository) {
 
     this.usuarioRepository = usuarioRepository;
+    this.empresaRepository = empresaRepository;
+    this.cursoRepository = cursoRepository;
+    this.evaluacionRepository = evaluacionRepository;
 
-    crearEncabezado();
-    crearMenuLateral();
     crearContenido();
-}
-    private void crearEncabezado() {
 
-        DrawerToggle toggle = new DrawerToggle();
+    
+
+       
 
         H1 logo = new H1("SAH");
         logo.getStyle()
@@ -63,9 +72,7 @@ private final UsuarioRepository usuarioRepository;
                 .set("font-weight", "600")
                 .set("color", "#334155");
 
-        HorizontalLayout encabezado =
-                new HorizontalLayout(toggle, identidad, usuario);
-
+        HorizontalLayout encabezado = new HorizontalLayout(identidad, usuario);
         encabezado.setWidthFull();
         encabezado.setAlignItems(
                 HorizontalLayout.Alignment.CENTER
@@ -80,68 +87,9 @@ private final UsuarioRepository usuarioRepository;
         addToNavbar(encabezado);
     }
 
-    private void crearMenuLateral() {
+    
 
-        H2 titulo = new H2("Menú principal");
-        titulo.getStyle()
-                .set("font-size", "15px")
-                .set("color", "#64748B")
-                .set("margin", "10px 0 20px 10px");
-
-        VerticalLayout menu = new VerticalLayout();
-
-        menu.setPadding(true);
-        menu.setSpacing(false);
-        menu.setWidthFull();
-
-        menu.add(titulo);
-
-        menu.add(
-                crearOpcion("Inicio", VaadinIcon.DASHBOARD),
-                crearOpcion("Usuarios", VaadinIcon.USERS),
-                crearOpcion("Empresas", VaadinIcon.BUILDING),
-                crearOpcion("Cursos", VaadinIcon.BOOK),
-                crearOpcion("Evaluaciones", VaadinIcon.CLIPBOARD_CHECK),
-                crearOpcion("Reportes", VaadinIcon.CHART)
-        );
-
-        menu.getStyle()
-                .set("background", "#FFFFFF");
-
-        addToDrawer(menu);
-    }
-
-    private HorizontalLayout crearOpcion(
-            String texto,
-            VaadinIcon icono) {
-
-        HorizontalLayout opcion = new HorizontalLayout();
-
-        Span iconoVisual = new Span(icono.create());
-        iconoVisual.getStyle()
-                .set("color", "#2875C7");
-
-        Span etiqueta = new Span(texto);
-        etiqueta.getStyle()
-                .set("font-size", "14px")
-                .set("font-weight", "500")
-                .set("color", "#334155");
-
-        opcion.add(iconoVisual, etiqueta);
-        opcion.setAlignItems(
-                HorizontalLayout.Alignment.CENTER
-        );
-
-        opcion.setWidthFull();
-
-        opcion.getStyle()
-                .set("padding", "12px")
-                .set("border-radius", "8px")
-                .set("cursor", "default");
-
-        return opcion;
-    }
-
+    
     private void crearContenido() {
 
         VerticalLayout contenido = new VerticalLayout();
@@ -176,14 +124,17 @@ private final UsuarioRepository usuarioRepository;
                 crearTarjeta("Usuarios",
         String.valueOf(usuarioRepository.count()),
         VaadinIcon.USERS, "#2875C7"),
-                crearTarjeta("Empresas", "Por conectar",
-                        VaadinIcon.BUILDING, "#0891B2"),
+                crearTarjeta("Empresas",
+        String.valueOf(empresaRepository.count()),
+        VaadinIcon.BUILDING, "#0891B2"),
+        crearTarjeta("Cursos",
+        String.valueOf(cursoRepository.count()),
+        VaadinIcon.BOOK, "#7C3AED"),
 
-                crearTarjeta("Cursos", "Por conectar",
-                        VaadinIcon.BOOK, "#7C3AED"),
+              crearTarjeta("Evaluaciones",
+                String.valueOf(evaluacionRepository.count()),
+                VaadinIcon.CLIPBOARD_CHECK, "#D97706")
 
-                crearTarjeta("Evaluaciones", "Por conectar",
-                        VaadinIcon.CLIPBOARD_CHECK, "#D97706")
         );
 
         estadisticas.setWidthFull();
