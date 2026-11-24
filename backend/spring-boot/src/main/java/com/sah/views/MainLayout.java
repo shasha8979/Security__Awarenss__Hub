@@ -1,6 +1,7 @@
 
 package com.sah.views;
 
+import com.sah.entity.AsignacionView;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.html.H1;
@@ -10,10 +11,11 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.RouterLink;
-
+import jakarta.annotation.security.PermitAll;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+@PermitAll
 public class MainLayout extends AppLayout {
 
     public MainLayout() {
@@ -79,15 +81,14 @@ public class MainLayout extends AppLayout {
 
         menu.add(titulo);
 
-        menu.add(
-                crearOpcion("Inicio", VaadinIcon.DASHBOARD, ""),
-                crearOpcion("Usuarios", VaadinIcon.USERS, "usuarios"),
-                crearOpcion("Empresas", VaadinIcon.BUILDING, "empresas"),
-                crearOpcion("Cursos", VaadinIcon.BOOK, "cursos"),
-                crearOpcion("Evaluaciones", VaadinIcon.CLIPBOARD_CHECK, "evaluaciones"),
-                crearOpcion("Reportes", VaadinIcon.CHART, "reportes")
-        );
-
+      menu.add(
+        crearOpcion("Inicio", VaadinIcon.DASHBOARD, ""),
+        crearOpcion("Usuarios", VaadinIcon.USERS, "usuarios"),
+        crearOpcion("Empresas", VaadinIcon.BUILDING, "empresas"),
+        crearOpcion("Cursos", VaadinIcon.BOOK, "cursos"),
+        crearOpcion("Evaluaciones", VaadinIcon.CLIPBOARD_CHECK, "evaluaciones"),
+        crearOpcion("Reportes", VaadinIcon.CHART, "reportes")
+);
         menu.getStyle().set("background", "#FFFFFF");
 
         addToDrawer(menu);
@@ -129,16 +130,27 @@ public class MainLayout extends AppLayout {
         return enlace;
     }
 
-    private Class<? extends com.vaadin.flow.component.Component>
-            obtenerVista(String ruta) {
+   
+private Class<? extends com.vaadin.flow.component.Component>
+        obtenerVista(String ruta) {
 
-        switch (ruta) {
-            case "evaluaciones":
-                return EvaluacionView.class;
-            default:
-                return MainView.class;
-        }
+    switch (ruta) {
+        case "usuarios":
+            return UsuarioView.class;
+
+        case "empresas":
+            return EmpresaView.class;
+
+        case "evaluaciones":
+            return EvaluacionView.class;
+
+        case "asignaciones":
+            return AsignacionView.class;
+
+        default:
+            return MainView.class;
     }
+}
 
     private String obtenerUsuario() {
 

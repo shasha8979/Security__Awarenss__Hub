@@ -24,7 +24,7 @@ import jakarta.annotation.security.RolesAllowed;
 
 @Route("evaluaciones")
 @PageTitle("Evaluaciones | Security Awareness Hub")
-@RolesAllowed("ROLE_ADMIN")
+@RolesAllowed("ADMIN")
 public class EvaluacionView extends MainLayout  {
 
     private final EvaluacionRepository evaluacionRepository;

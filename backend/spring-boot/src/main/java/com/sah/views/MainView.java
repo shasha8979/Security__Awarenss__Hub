@@ -24,7 +24,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 @Route("")
 @PageTitle("Dashboard | Security Awareness Hub")
-@RolesAllowed("ROLE_ADMIN")
+@RolesAllowed("ADMIN")
 public class MainView extends MainLayout {
 private final UsuarioRepository usuarioRepository;
 private final EmpresaRepository empresaRepository;
