@@ -1,9 +1,7 @@
 
 package com.sah.views;
 
-import com.sah.entity.AsignacionView;
 import com.vaadin.flow.component.applayout.AppLayout;
-import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Span;
@@ -12,6 +10,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.RouterLink;
 import jakarta.annotation.security.PermitAll;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -24,8 +23,6 @@ public class MainLayout extends AppLayout {
     }
 
     private void crearEncabezado() {
-
-      
 
         H1 logo = new H1("SAH");
         logo.getStyle()
@@ -52,7 +49,7 @@ public class MainLayout extends AppLayout {
                 .set("color", "#334155");
 
         HorizontalLayout encabezado =
-                new HorizontalLayout( identidad, usuario);
+                new HorizontalLayout(identidad, usuario);
 
         encabezado.setWidthFull();
         encabezado.setAlignItems(HorizontalLayout.Alignment.CENTER);
@@ -81,14 +78,16 @@ public class MainLayout extends AppLayout {
 
         menu.add(titulo);
 
-      menu.add(
-        crearOpcion("Inicio", VaadinIcon.DASHBOARD, ""),
-        crearOpcion("Usuarios", VaadinIcon.USERS, "usuarios"),
-        crearOpcion("Empresas", VaadinIcon.BUILDING, "empresas"),
-        crearOpcion("Cursos", VaadinIcon.BOOK, "cursos"),
-        crearOpcion("Evaluaciones", VaadinIcon.CLIPBOARD_CHECK, "evaluaciones"),
-        crearOpcion("Reportes", VaadinIcon.CHART, "reportes")
-);
+        menu.add(
+                crearOpcion("Inicio", VaadinIcon.DASHBOARD, ""),
+                crearOpcion("Usuarios", VaadinIcon.USERS, "usuarios"),
+                crearOpcion("Empresas", VaadinIcon.BUILDING, "empresas"),
+                crearOpcion("Cursos", VaadinIcon.BOOK, "cursos"),
+                crearOpcion("Evaluaciones", VaadinIcon.CLIPBOARD_CHECK, "evaluaciones"),
+                crearOpcion("Reportes", VaadinIcon.CHART, "reportes"),
+                crearOpcion("Asignaciones", VaadinIcon.CLIPBOARD_CHECK, "asignaciones")
+        );
+
         menu.getStyle().set("background", "#FFFFFF");
 
         addToDrawer(menu);
@@ -100,9 +99,12 @@ public class MainLayout extends AppLayout {
             String ruta) {
 
         RouterLink enlace = new RouterLink();
-        enlace.setRoute(ruta.isEmpty()
-                ? MainView.class
-                : obtenerVista(ruta));
+
+        enlace.setRoute(
+                ruta.isEmpty()
+                        ? MainView.class
+                        : obtenerVista(ruta)
+        );
 
         HorizontalLayout contenido = new HorizontalLayout();
 
@@ -124,33 +126,32 @@ public class MainLayout extends AppLayout {
                 .set("border-radius", "8px");
 
         enlace.add(contenido);
-
         enlace.getStyle().set("text-decoration", "none");
 
         return enlace;
     }
 
-   
-private Class<? extends com.vaadin.flow.component.Component>
-        obtenerVista(String ruta) {
+    private Class<? extends com.vaadin.flow.component.Component>
+            obtenerVista(String ruta) {
 
-    switch (ruta) {
-        case "usuarios":
-            return UsuarioView.class;
+        switch (ruta) {
 
-        case "empresas":
-            return EmpresaView.class;
+            case "usuarios":
+                return UsuarioView.class;
 
-        case "evaluaciones":
-            return EvaluacionView.class;
+            case "empresas":
+                return EmpresaView.class;
 
-        case "asignaciones":
-            return AsignacionView.class;
+            case "evaluaciones":
+                return EvaluacionView.class;
 
-        default:
-            return MainView.class;
+            case "asignaciones":
+                return AsignacionView.class;
+
+            default:
+                return MainView.class;
+        }
     }
-}
 
     private String obtenerUsuario() {
 

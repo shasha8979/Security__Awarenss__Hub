@@ -1,36 +1,41 @@
 
 package com.sah.views;
-import com.sah.repository.EmpresaRepository;
+
+import com.sah.entity.Usuario;
 import com.sah.repository.UsuarioRepository;
+import com.sah.repository.EmpresaRepository;
 import com.sah.repository.CursoRepository;
 import com.sah.repository.EvaluacionRepository;
-import com.vaadin.flow.component.applayout.DrawerToggle;
+import com.sah.repository.AsignacionRepository;
+import com.sah.entity.Asignacion;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-
+import com.vaadin.flow.router.RouterLink;
 
 import jakarta.annotation.security.RolesAllowed;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-@Route("")
+@Route(value = "", layout = MainLayout.class)
 @PageTitle("Dashboard | Security Awareness Hub")
-@RolesAllowed("ADMIN")
-public class MainView extends MainLayout {
-private final UsuarioRepository usuarioRepository;
-private final EmpresaRepository empresaRepository;
-private final CursoRepository cursoRepository;
-private final EvaluacionRepository evaluacionRepository;
-    
+@RolesAllowed({"ADMIN", "ADMIN_EMPRESA", "EMPLEADO"})
+public class MainView extends VerticalLayout {
+
+    private final UsuarioRepository usuarioRepository;
+    private final EmpresaRepository empresaRepository;
+    private final CursoRepository cursoRepository;
+    private final EvaluacionRepository evaluacionRepository;
+    private final AsignacionRepository asignacionRepository;
+
 public MainView(
         UsuarioRepository usuarioRepository,
         EmpresaRepository empresaRepository,
@@ -41,204 +46,399 @@ public MainView(
     this.empresaRepository = empresaRepository;
     this.cursoRepository = cursoRepository;
     this.evaluacionRepository = evaluacionRepository;
+    this.asignacionRepository = asignacionRepository;
 
-    crearContenido();
+    setSizeFull();
+    setPadding(true);
+    setSpacing(true);
+    setDefaultHorizontalComponentAlignment(
+            Alignment.CENTER
+    );
 
-    
+    construirDashboard();
+}
+    private void construirDashboard() {
 
-       
+        Usuario usuario = obtenerUsuarioActual();
 
-        H1 logo = new H1("SAH");
-        logo.getStyle()
-                .set("font-size", "22px")
-                .set("font-weight", "800")
-                .set("color", "#1769AA")
-                .set("margin", "0");
+        if (usuario == null) {
+            add(new H1("No se pudo identificar al usuario."));
+            return;
+        }
 
-        Span nombre = new Span("SECURITY AWARENESS HUB");
-        nombre.getStyle()
-                .set("font-size", "13px")
-                .set("font-weight", "600")
-                .set("letter-spacing", "1px")
-                .set("color", "#475569");
-
-        VerticalLayout identidad = new VerticalLayout(logo, nombre);
-        identidad.setPadding(false);
-        identidad.setSpacing(false);
-
-        Span usuario = new Span(obtenerUsuario());
-        usuario.getStyle()
-                .set("font-size", "13px")
-                .set("font-weight", "600")
-                .set("color", "#334155");
-
-        HorizontalLayout encabezado = new HorizontalLayout(identidad, usuario);
-        encabezado.setWidthFull();
-        encabezado.setAlignItems(
-                HorizontalLayout.Alignment.CENTER
-        );
-        encabezado.expand(identidad);
-
-        encabezado.getStyle()
-                .set("padding", "10px 20px")
-                .set("background", "#FFFFFF")
-                .set("border-bottom", "1px solid #E2E8F0");
-
-        addToNavbar(encabezado);
-    }
-
-    
-
-    
-    private void crearContenido() {
+        String rol = usuario.getRol().toLowerCase();
 
         VerticalLayout contenido = new VerticalLayout();
-
+        contenido.setWidthFull();
+        contenido.setMaxWidth("1200px");
         contenido.setPadding(true);
         contenido.setSpacing(true);
-        contenido.setWidthFull();
-
-        contenido.getStyle()
-                .set("background", "#F1F5F9")
-                .set("min-height", "100vh")
-                .set("box-sizing", "border-box");
-
-        H1 titulo = new H1("Panel administrativo");
-
-        titulo.getStyle()
-                .set("font-size", "28px")
-                .set("font-weight", "700")
-                .set("color", "#1E293B")
-                .set("margin", "0");
-
-        Paragraph bienvenida = new Paragraph(
-                "Bienvenido a Security Awareness Hub. "
-                + "Administra la capacitación en seguridad digital."
-        );
-
-        bienvenida.getStyle()
-                .set("color", "#64748B")
-                .set("margin-top", "0");
-
-        HorizontalLayout estadisticas = new HorizontalLayout(
-                crearTarjeta("Usuarios",
-        String.valueOf(usuarioRepository.count()),
-        VaadinIcon.USERS, "#2875C7"),
-                crearTarjeta("Empresas",
-        String.valueOf(empresaRepository.count()),
-        VaadinIcon.BUILDING, "#0891B2"),
-        crearTarjeta("Cursos",
-        String.valueOf(cursoRepository.count()),
-        VaadinIcon.BOOK, "#7C3AED"),
-
-              crearTarjeta("Evaluaciones",
-                String.valueOf(evaluacionRepository.count()),
-                VaadinIcon.CLIPBOARD_CHECK, "#D97706")
-
-        );
-
-        estadisticas.setWidthFull();
-        estadisticas.setSpacing(true);
-        estadisticas.setFlexGrow(1);
-
-        estadisticas.getStyle()
-                .set("flex-wrap", "wrap");
-
-        Div actividad = new Div();
-
-        H2 actividadTitulo = new H2("Actividad reciente");
-
-        actividadTitulo.getStyle()
-                .set("font-size", "19px")
-                .set("color", "#1E293B");
-
-        Paragraph actividadMensaje = new Paragraph(
-                "Aquí se mostrarán los registros y movimientos "
-                + "recientes de la plataforma."
-        );
-
-        actividadMensaje.getStyle()
-                .set("color", "#64748B");
-
-        actividad.add(actividadTitulo, actividadMensaje);
-
-        actividad.setWidthFull();
-
-        actividad.getStyle()
-                .set("background", "#FFFFFF")
-                .set("padding", "22px")
-                .set("border-radius", "12px")
-                .set("border", "1px solid #E2E8F0")
-                .set("box-sizing", "border-box");
 
         contenido.add(
-                titulo,
-                bienvenida,
-                estadisticas,
-                actividad
+                new H1("Bienvenido al Security Awareness Hub"),
+                new Paragraph(
+                        "Hola, " + usuario.getNombres()
+                                + ". Este es tu espacio de capacitación "
+                                + "en ciberseguridad."
+                )
         );
 
-        setContent(contenido);
+        switch (rol) {
+
+            case "admin":
+                construirPanelAdministrador(contenido);
+                break;
+
+            case "admin_empresa":
+                construirPanelEmpresa(contenido);
+                break;
+
+            case "empleado":
+                construirPanelEstudiante(contenido);
+                break;
+
+            default:
+                contenido.add(
+                        new Paragraph(
+                                "Tu perfil no tiene un panel asignado."
+                        )
+                );
+                break;
+        }
+
+        add(contenido);
+    }
+
+    private void construirPanelAdministrador(
+            VerticalLayout contenido) {
+                construirEstadisticasAdministrador(contenido);        
+        contenido.add(
+                new H2("Panel de administración"),
+                new Paragraph(
+                        "Gestiona los recursos y las actividades "
+                                + "generales de la plataforma."
+                )
+        );
+
+        HorizontalLayout tarjetas = new HorizontalLayout();
+        tarjetas.setWidthFull();
+        tarjetas.setFlexWrap(true);
+
+        tarjetas.add(
+                crearTarjeta(
+                        "Usuarios",
+                        "Administra las cuentas y los perfiles.",
+                        UsuarioView.class
+                ),
+                crearTarjeta(
+                        "Empresas",
+                        "Gestiona las organizaciones registradas.",
+                        EmpresaView.class
+                ),
+                crearTarjeta(
+                        "Evaluaciones",
+                        "Administra las evaluaciones de capacitación.",
+                        EvaluacionView.class
+                ),
+                crearTarjeta(
+                        "Asignaciones",
+                        "Organiza los contenidos asignados.",
+                        AsignacionView.class
+                )
+        );
+
+        contenido.add(tarjetas);
+    }
+
+    private void construirPanelEmpresa(
+            VerticalLayout contenido) {
+
+        contenido.add(
+                new H2("Panel de capacitación empresarial"),
+                new Paragraph(
+                        "Desde aquí puedes organizar y supervisar "
+                                + "las capacitaciones de tu empresa."
+                )
+        );
+
+        contenido.add(
+                crearTarjeta(
+                        "Asignaciones",
+                        "Consulta y organiza las capacitaciones "
+                                + "de los estudiantes de tu empresa.",
+                        AsignacionView.class
+                )
+        );
+    }
+
+    private void construirPanelEstudiante(
+            VerticalLayout contenido) {
+                construirEstadisticasEstudiante(
+                        contenido,
+                        obtenerUsuarioActual()
+                ); 
+        contenido.add(
+                new H2("Mi espacio de aprendizaje"),
+                new Paragraph(
+                        "Aquí puedes consultar tus capacitaciones "
+                                + "y realizar las actividades asignadas."
+                )
+        );
+
+        contenido.add(
+                crearTarjeta(
+                        "Mis capacitaciones",
+                        "Consulta los cursos y evaluaciones "
+                                + "que te han asignado.",
+                                MisCapacitacionesView.class
+                )
+        );
     }
 
     private Div crearTarjeta(
             String titulo,
-            String valor,
-            VaadinIcon icono,
-            String color) {
+            String descripcion,
+            Class<? extends Component> destino) {
 
         Div tarjeta = new Div();
 
-        Span iconoVisual = new Span(icono.create());
-
-        iconoVisual.getStyle()
-                .set("color", color)
-                .set("font-size", "24px");
-
-        Span nombre = new Span(titulo);
-
-        nombre.getStyle()
-                .set("font-size", "14px")
-                .set("color", "#64748B");
-
-        H2 cantidad = new H2(valor);
-
-        cantidad.getStyle()
-                .set("font-size", "20px")
-                .set("color", "#1E293B")
-                .set("margin", "8px 0 0 0");
-
-        VerticalLayout informacion =
-                new VerticalLayout(nombre, cantidad);
-
-        informacion.setPadding(false);
-        informacion.setSpacing(false);
-
-        tarjeta.add(iconoVisual, informacion);
-
+        tarjeta.setWidth("260px");
         tarjeta.getStyle()
-                .set("background", "#FFFFFF")
                 .set("padding", "20px")
                 .set("border-radius", "12px")
-                .set("border", "1px solid #E2E8F0")
-                .set("box-sizing", "border-box")
-                .set("flex", "1 1 190px")
-                .set("min-width", "190px");
+                .set("border", "1px solid var(--lumo-contrast-10pct)")
+                .set("background", "var(--lumo-base-color)")
+                .set("box-shadow", "0 2px 8px rgba(0,0,0,0.06)");
+
+        H2 encabezado = new H2(titulo);
+        encabezado.getStyle().set("font-size", "18px");
+
+        Paragraph texto = new Paragraph(descripcion);
+
+        RouterLink enlace = new RouterLink(
+                "Acceder",
+                destino
+        );
+
+        tarjeta.add(encabezado, texto, enlace);
 
         return tarjeta;
     }
 
-    private String obtenerUsuario() {
+    private Usuario obtenerUsuarioActual() {
 
-        Authentication autenticacion =
-                SecurityContextHolder.getContext().getAuthentication();
+        Authentication authentication =
+                SecurityContextHolder.getContext()
+                        .getAuthentication();
 
-        if (autenticacion != null
-                && autenticacion.isAuthenticated()) {
-
-            return autenticacion.getName();
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            return null;
         }
 
-        return "Administrador";
+        return usuarioRepository
+                .findByCorreo(authentication.getName())
+                .orElse(null);
     }
+}
+
+
+
+private void construirEstadisticasAdministrador(
+        VerticalLayout contenido) {
+
+    HorizontalLayout estadisticas = new HorizontalLayout();
+    estadisticas.setWidthFull();
+    estadisticas.setFlexWrap(true);
+
+    estadisticas.add(
+            crearIndicador(
+                    "Empresas registradas",
+                    empresaRepository.count(),
+                    "building-2"
+            ),
+            crearIndicador(
+                    "Usuarios registrados",
+                    usuarioRepository.count(),
+                    "users"
+            ),
+            crearIndicador(
+                    "Cursos registrados",
+                    cursoRepository.count(),
+                    "book-open"
+            ),
+            crearIndicador(
+                    "Evaluaciones registradas",
+                    evaluacionRepository.count(),
+                    "clipboard-check"
+            )
+    );
+
+    contenido.add(estadisticas);
+}
+
+
+private void construirEstadisticasEmpresa(
+        VerticalLayout contenido,
+        Usuario administrador) {
+
+    if (administrador.getEmpresa() == null) {
+        contenido.add(
+                new Paragraph(
+                        "Tu cuenta no tiene una empresa asociada."
+                )
+        );
+        return;
+    }
+
+    Integer empresaId = administrador.getEmpresa().getId();
+
+    long totalEstudiantes = usuarioRepository
+            .findByEmpresa_Id(empresaId)
+            .stream()
+            .filter(usuario ->
+                    "empleado".equalsIgnoreCase(usuario.getRol())
+                    && "activo".equalsIgnoreCase(usuario.getEstado())
+            )
+            .count();
+
+    var asignaciones = asignacionRepository
+            .findByUsuario_Empresa_Id(empresaId);
+
+    long totalAsignaciones = asignaciones.size();
+
+    long pendientes = asignaciones.stream()
+            .filter(asignacion ->
+                    asignacion.getEstado() == Asignacion.Estado.pendiente)
+            .count();
+
+    long completadas = asignaciones.stream()
+            .filter(asignacion ->
+                    asignacion.getEstado() == Asignacion.Estado.completado)
+            .count();
+
+    HorizontalLayout estadisticas = new HorizontalLayout();
+    estadisticas.setWidthFull();
+    estadisticas.setFlexWrap(true);
+
+    estadisticas.add(
+            crearIndicador(
+                    "Estudiantes activos",
+                    totalEstudiantes,
+                    "users"
+            ),
+            crearIndicador(
+                    "Capacitaciones asignadas",
+                    totalAsignaciones,
+                    "book-open"
+            ),
+            crearIndicador(
+                    "Pendientes",
+                    pendientes,
+                    "clock"
+            ),
+            crearIndicador(
+                    "Completadas",
+                    completadas,
+                    "circle-check"
+            )
+    );
+
+    contenido.add(estadisticas);
+}
+
+
+
+private void construirEstadisticasEstudiante(
+        VerticalLayout contenido,
+        Usuario estudiante) {
+
+    if (estudiante == null) {
+        contenido.add(
+                new Paragraph("No se pudo identificar al estudiante.")
+        );
+        return;
+    }
+
+    var asignaciones = asignacionRepository
+            .findByUsuario_Id(estudiante.getId());
+
+    long total = asignaciones.size();
+
+    long pendientes = asignaciones.stream()
+            .filter(asignacion ->
+                    asignacion.getEstado() == Asignacion.Estado.pendiente)
+            .count();
+
+    long enProgreso = asignaciones.stream()
+            .filter(asignacion ->
+                    asignacion.getEstado() == Asignacion.Estado.progreso)
+            .count();
+
+    long completadas = asignaciones.stream()
+            .filter(asignacion ->
+                    asignacion.getEstado() == Asignacion.Estado.completado)
+            .count();
+
+    HorizontalLayout estadisticas = new HorizontalLayout();
+    estadisticas.setWidthFull();
+    estadisticas.setFlexWrap(true);
+
+    estadisticas.add(
+            crearIndicador(
+                    "Mis capacitaciones",
+                    total,
+                    "book-open"
+            ),
+            crearIndicador(
+                    "Pendientes",
+                    pendientes,
+                    "clock"
+            ),
+            crearIndicador(
+                    "En progreso",
+                    enProgreso,
+                    "activity"
+            ),
+            crearIndicador(
+                    "Completadas",
+                    completadas,
+                    "circle-check"
+            )
+    );
+
+    contenido.add(estadisticas);
+}
+
+
+
+private Div crearIndicador(
+        String titulo,
+        long cantidad,
+        String icono) {
+
+    Div tarjeta = new Div();
+
+    tarjeta.setWidth("220px");
+    tarjeta.getStyle()
+            .set("padding", "20px")
+            .set("border-radius", "12px")
+            .set("border", "1px solid var(--lumo-contrast-10pct)")
+            .set("background", "var(--lumo-base-color)")
+            .set("box-shadow", "0 2px 8px rgba(0,0,0,0.06)");
+
+    Span nombre = new Span(titulo);
+    nombre.getStyle()
+            .set("font-size", "14px")
+            .set("color", "var(--lumo-secondary-text-color)");
+
+    H1 valor = new H1(String.valueOf(cantidad));
+    valor.getStyle()
+            .set("font-size", "30px")
+            .set("margin", "12px 0 0 0");
+
+    tarjeta.add(nombre, valor);
+
+    return tarjeta;
 }
