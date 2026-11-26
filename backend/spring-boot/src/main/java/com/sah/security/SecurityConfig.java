@@ -5,14 +5,24 @@ import com.sah.service.UsuarioDetailsService;
 import com.sah.views.LoginView;
 import com.vaadin.flow.spring.security.VaadinSecurityConfigurer;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+
+import java.io.IOException;
+import java.time.LocalDateTime;
 
 @Configuration
 @EnableWebSecurity
@@ -36,7 +46,58 @@ public class SecurityConfig {
         return provider;
     }
 
+    /**
+     * Seguridad de la API REST (/api/**), separada de la interfaz Vaadin.
+     *
+     * - HTTP Basic: el cliente (Postman, Thunder Client) envia usuario y
+     *   contrasena en cada peticion; debe usarse sobre HTTPS en produccion.
+     * - Sin sesion (STATELESS): no se crean cookies de sesion.
+     * - CSRF desactivado: CSRF ataca sesiones basadas en cookies, y esta
+     *   API no las usa. La interfaz Vaadin mantiene su proteccion CSRF.
+     * - 401 si no hay credenciales validas, 403 si el rol no alcanza;
+     *   ambos en JSON.
+     */
     @Bean
+    @Order(1)
+    public SecurityFilterChain apiSecurityFilterChain(
+            HttpSecurity http,
+            DaoAuthenticationProvider authenticationProvider)
+            throws Exception {
+
+        http
+                .securityMatcher("/api/**")
+                .authenticationProvider(authenticationProvider)
+                .authorizeHttpRequests(reglas -> reglas
+                        // Consultar el catalogo de capacitacion: cualquier
+                        // usuario autenticado (admin, admin_empresa, estudiante)
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/cursos/**", "/api/evaluaciones/**").authenticated()
+                        // Crear, editar o desactivar cursos y evaluaciones, y
+                        // todo lo de empresas y usuarios: solo administrador
+                        .anyRequest().hasRole("ADMIN")
+                )
+                .httpBasic(basic -> basic.authenticationEntryPoint(
+                        (peticion, respuesta, ex) -> escribirError(
+                                peticion, respuesta, 401, "Unauthorized",
+                                "Debes autenticarte con un usuario válido.")
+                ))
+                .exceptionHandling(errores -> errores.accessDeniedHandler(
+                        (peticion, respuesta, ex) -> escribirError(
+                                peticion, respuesta, 403, "Forbidden",
+                                "Tu rol no tiene permiso para esta operación.")
+                ))
+                .sessionManagement(sesion ->
+                        sesion.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .csrf(csrf -> csrf.disable())
+                .formLogin(form -> form.disable())
+                .logout(logout -> logout.disable());
+
+        return http.build();
+    }
+
+    /** Seguridad de la interfaz Vaadin (login con formulario y sesion). */
+    @Bean
+    @Order(2)
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             DaoAuthenticationProvider authenticationProvider)
@@ -49,5 +110,31 @@ public class SecurityConfig {
         );
 
         return http.build();
+    }
+
+    private static void escribirError(
+            HttpServletRequest peticion,
+            HttpServletResponse respuesta,
+            int estado,
+            String error,
+            String mensaje) throws IOException {
+
+        respuesta.setStatus(estado);
+        respuesta.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        respuesta.setCharacterEncoding("UTF-8");
+
+        // Mismo formato que ErrorRespuestaDTO
+        respuesta.getWriter().write(
+                "{\"fecha\":\"" + LocalDateTime.now() + "\","
+                        + "\"estado\":" + estado + ","
+                        + "\"error\":\"" + error + "\","
+                        + "\"mensaje\":\"" + mensaje + "\","
+                        + "\"ruta\":\"" + json(peticion.getRequestURI()) + "\","
+                        + "\"campos\":{}}"
+        );
+    }
+
+    private static String json(String texto) {
+        return texto == null ? "" : texto.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 }

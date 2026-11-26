@@ -1,8 +1,8 @@
 
 package com.sah.views;
 
-import com.sah.entity.Asignacion;
-import com.sah.entity.Usuario;
+import com.sah.model.Asignacion;
+import com.sah.model.Usuario;
 
 import com.sah.repository.UsuarioRepository;
 import com.sah.repository.EmpresaRepository;
@@ -141,6 +141,11 @@ public class MainView extends VerticalLayout {
                         EmpresaView.class
                 ),
                 crearTarjeta(
+                        "Cursos",
+                        "Gestiona los cursos de capacitación.",
+                        CursoView.class
+                ),
+                crearTarjeta(
                         "Evaluaciones",
                         "Administra las evaluaciones de capacitación.",
                         EvaluacionView.class
@@ -149,6 +154,11 @@ public class MainView extends VerticalLayout {
                         "Asignaciones",
                         "Organiza los contenidos asignados.",
                         AsignacionView.class
+                ),
+                crearTarjeta(
+                        "Reportes",
+                        "Consulta indicadores y avance de capacitación.",
+                        ReporteView.class
                 )
         );
 
@@ -169,7 +179,13 @@ public class MainView extends VerticalLayout {
 
         construirEstadisticasEmpresa(contenido, administrador);
 
-        contenido.add(
+        HorizontalLayout tarjetas = new HorizontalLayout(
+                crearTarjeta(
+                        "Seguimiento",
+                        "Consulta el avance de cada estudiante "
+                                + "de tu empresa.",
+                        AdminEmpresaView.class
+                ),
                 crearTarjeta(
                         "Asignaciones",
                         "Consulta y organiza las capacitaciones "
@@ -177,6 +193,10 @@ public class MainView extends VerticalLayout {
                         AsignacionView.class
                 )
         );
+        tarjetas.setWidthFull();
+        tarjetas.getStyle().set("flex-wrap", "wrap");
+
+        contenido.add(tarjetas);
     }
 
     private void construirPanelEstudiante(

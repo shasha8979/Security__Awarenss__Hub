@@ -1,7 +1,7 @@
 
 package com.sah.service;
 
-import com.sah.entity.Usuario;
+import com.sah.model.Usuario;
 import com.sah.repository.UsuarioRepository;
 
 import org.springframework.security.core.userdetails.User;

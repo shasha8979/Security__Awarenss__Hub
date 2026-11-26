@@ -1,7 +1,7 @@
 
 package com.sah.repository;
 
-import com.sah.entity.Asignacion;
+import com.sah.model.Asignacion;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;

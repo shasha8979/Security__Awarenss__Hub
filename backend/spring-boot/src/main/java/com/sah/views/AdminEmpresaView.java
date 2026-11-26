@@ -1,183 +1,275 @@
-
 package com.sah.views;
 
-import com.sah.entity.Empresa;
-import com.sah.entity.Usuario;
+import com.sah.dto.AvanceEstudianteDTO;
+import com.sah.model.Empresa;
+import com.sah.model.Usuario;
 import com.sah.repository.UsuarioRepository;
-import com.sah.repository.EmpresaRepository;
+import com.sah.service.ReporteService;
 
-import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.progressbar.ProgressBar;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.RouterLink;
 
 import jakarta.annotation.security.RolesAllowed;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.util.List;
+import java.util.Locale;
+
+/**
+ * Seguimiento de los estudiantes de la empresa del administrador
+ * autenticado. La empresa se obtiene siempre del usuario en sesion,
+ * por lo que no es posible consultar datos de otras empresas.
+ */
 @Route(value = "dashboard-empresa", layout = MainLayout.class)
-@PageTitle("Dashboard Empresa | Security Awareness Hub")
+@PageTitle("Seguimiento de estudiantes | SAH")
 @RolesAllowed("ADMIN_EMPRESA")
 public class AdminEmpresaView extends VerticalLayout {
 
     private final UsuarioRepository usuarioRepository;
-    private final EmpresaRepository empresaRepository;
+    private final ReporteService reporteService;
+
+    private final Grid<AvanceEstudianteDTO> grid =
+            new Grid<>(AvanceEstudianteDTO.class, false);
+    private final TextField buscador = new TextField();
+
+    private List<AvanceEstudianteDTO> estudiantes = List.of();
 
     public AdminEmpresaView(
             UsuarioRepository usuarioRepository,
-            EmpresaRepository empresaRepository) {
+            ReporteService reporteService) {
 
         this.usuarioRepository = usuarioRepository;
-        this.empresaRepository = empresaRepository;
+        this.reporteService = reporteService;
 
-        setSizeFull();
+        setWidthFull();
         setPadding(true);
         setSpacing(true);
-
-        getStyle()
-                .set("background", "#F1F5F9")
-                .set("box-sizing", "border-box");
 
         crearContenido();
     }
 
     private void crearContenido() {
 
-        H1 titulo = new H1("Panel de empresa");
-        titulo.getStyle()
-                .set("font-size", "28px")
-                .set("font-weight", "700")
-                .set("color", "#1E293B")
-                .set("margin", "0");
-
-        Paragraph bienvenida = new Paragraph(
-                "Bienvenido a Security Awareness Hub. "
-                + "Administra la capacitación de tu empresa."
-        );
-
-        bienvenida.getStyle()
-                .set("color", "#64748B");
+        H2 titulo = new H2("Seguimiento de estudiantes");
 
         Usuario usuario = obtenerUsuarioActual();
-
-        Empresa empresa = usuario.getEmpresa();
+        Empresa empresa = usuario == null ? null : usuario.getEmpresa();
 
         if (empresa == null) {
             add(titulo, new Paragraph(
-                    "Tu cuenta no tiene una empresa asignada."
+                    "Tu cuenta no tiene una empresa asignada. "
+                            + "Solicita al administrador del sistema que "
+                            + "asocie tu usuario a una empresa."
             ));
             return;
         }
 
-        H2 nombreEmpresa = new H2(empresa.getNombre());
-
-        nombreEmpresa.getStyle()
-                .set("color", "#1769AA")
-                .set("font-size", "21px");
-
-        long totalEmpleados =
-                usuarioRepository.findByEmpresa_IdAndRol(
-                        empresa.getId(), "empleado"
-                ).size();
-
-        HorizontalLayout estadisticas = new HorizontalLayout(
-                crearTarjeta(
-                        "Empleados",
-                        String.valueOf(totalEmpleados),
-                        VaadinIcon.USERS,
-                        "#2875C7"
-                ),
-                crearTarjeta(
-                        "Empresa",
-                        empresa.getNombre(),
-                        VaadinIcon.BUILDING,
-                        "#0891B2"
-                )
+        Paragraph descripcion = new Paragraph(
+                "Avance de capacitación de los estudiantes de "
+                        + empresa.getNombre() + "."
         );
+        descripcion.getStyle().set("margin", "0").set("color", "#64748B");
 
-        estadisticas.setWidthFull();
-        estadisticas.setSpacing(true);
-        estadisticas.getStyle().set("flex-wrap", "wrap");
-
-        Div actividad = new Div();
-
-        H2 actividadTitulo = new H2("Actividad de capacitación");
-
-        Paragraph actividadMensaje = new Paragraph(
-                "Aquí podrás consultar el seguimiento de los empleados, "
-                + "sus cursos y los resultados de sus evaluaciones."
-        );
-
-        actividad.add(actividadTitulo, actividadMensaje);
-
-        actividad.setWidthFull();
-
-        actividad.getStyle()
-                .set("background", "#FFFFFF")
-                .set("padding", "22px")
-                .set("border-radius", "12px")
-                .set("border", "1px solid #E2E8F0")
-                .set("box-sizing", "border-box");
+        estudiantes = reporteService.generarAvancePorEstudiante(empresa.getId());
 
         add(
                 titulo,
-                bienvenida,
-                nombreEmpresa,
-                estadisticas,
-                actividad
+                descripcion,
+                crearIndicadores(),
+                crearSeccionTabla()
         );
     }
 
-    private Div crearTarjeta(
-            String titulo,
-            String valor,
-            VaadinIcon icono,
-            String color) {
+    private Component crearIndicadores() {
 
-        Div tarjeta = new Div();
+        long total = estudiantes.size();
+        long activos = estudiantes.stream()
+                .filter(e -> "Activo".equals(e.estado()))
+                .count();
+        long asignaciones = estudiantes.stream()
+                .mapToLong(AvanceEstudianteDTO::asignaciones).sum();
+        long completadas = estudiantes.stream()
+                .mapToLong(AvanceEstudianteDTO::completadas).sum();
+        long sinCapacitacion = estudiantes.stream()
+                .filter(e -> e.asignaciones() == 0)
+                .count();
 
-        Span iconoVisual = new Span(icono.create());
+        Div indicadores = new Div(
+                crearIndicador("Estudiantes", String.valueOf(total),
+                        activos + " activos"),
+                crearIndicador("Asignaciones", String.valueOf(asignaciones),
+                        completadas + " completadas"),
+                crearIndicador("Avance general",
+                        (asignaciones == 0
+                                ? 0
+                                : Math.round(completadas * 100.0 / asignaciones))
+                                + " %",
+                        "de las asignaciones completadas"),
+                crearIndicador("Sin capacitación", String.valueOf(sinCapacitacion),
+                        "estudiantes sin asignaciones")
+        );
 
-        iconoVisual.getStyle()
-                .set("color", color)
-                .set("font-size", "24px");
+        indicadores.getStyle()
+                .set("display", "grid")
+                .set("grid-template-columns", "repeat(auto-fit, minmax(200px, 1fr))")
+                .set("gap", "16px")
+                .set("width", "100%");
 
-        Span nombre = new Span(titulo);
+        return indicadores;
+    }
 
-        nombre.getStyle()
-                .set("font-size", "14px")
-                .set("color", "#64748B");
+    private Component crearSeccionTabla() {
 
-        H2 cantidad = new H2(valor);
+        H3 subtitulo = new H3("Estudiantes");
+        subtitulo.getStyle().set("margin", "16px 0 0 0").set("color", "#1769AA");
 
-        cantidad.getStyle()
-                .set("font-size", "20px")
-                .set("color", "#1E293B")
-                .set("margin", "8px 0 0 0");
+        buscador.setPlaceholder("Buscar por nombre o correo");
+        buscador.setClearButtonVisible(true);
+        buscador.setValueChangeMode(ValueChangeMode.LAZY);
+        buscador.addValueChangeListener(event -> aplicarFiltro());
+        buscador.setWidth("320px");
+        buscador.setMaxWidth("100%");
 
-        VerticalLayout informacion =
-                new VerticalLayout(nombre, cantidad);
+        RouterLink asignar = new RouterLink("Asignar capacitaciones", AsignacionView.class);
 
-        informacion.setPadding(false);
-        informacion.setSpacing(false);
+        HorizontalLayout barra = new HorizontalLayout(buscador, asignar);
+        barra.setAlignItems(FlexComponent.Alignment.CENTER);
+        barra.setWidthFull();
+        barra.getStyle().set("flex-wrap", "wrap");
 
-        tarjeta.add(iconoVisual, informacion);
+        configurarGrid();
+        aplicarFiltro();
 
+        VerticalLayout seccion = new VerticalLayout(subtitulo, barra, grid);
+        seccion.setPadding(false);
+        seccion.setWidthFull();
+
+        if (estudiantes.isEmpty()) {
+            seccion.add(new Paragraph(
+                    "Tu empresa todavía no tiene estudiantes registrados."
+            ));
+        }
+
+        return seccion;
+    }
+
+    private void configurarGrid() {
+
+        grid.addColumn(AvanceEstudianteDTO::nombre)
+                .setHeader("Estudiante")
+                .setFlexGrow(1)
+                .setAutoWidth(true)
+                .setSortable(true);
+
+        grid.addColumn(AvanceEstudianteDTO::correo)
+                .setHeader("Correo")
+                .setAutoWidth(true);
+
+        grid.addColumn(AvanceEstudianteDTO::estado)
+                .setHeader("Estado")
+                .setAutoWidth(true);
+
+        grid.addColumn(AvanceEstudianteDTO::asignaciones)
+                .setHeader("Asignadas")
+                .setAutoWidth(true);
+
+        grid.addColumn(AvanceEstudianteDTO::pendientes)
+                .setHeader("Pendientes")
+                .setAutoWidth(true);
+
+        grid.addColumn(AvanceEstudianteDTO::enProgreso)
+                .setHeader("En progreso")
+                .setAutoWidth(true);
+
+        grid.addColumn(AvanceEstudianteDTO::completadas)
+                .setHeader("Completadas")
+                .setAutoWidth(true);
+
+        grid.addComponentColumn(this::crearBarra)
+                .setHeader("% completado")
+                .setWidth("180px")
+                .setFlexGrow(0);
+
+        grid.setAllRowsVisible(true);
+        grid.setWidthFull();
+        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+    }
+
+    private void aplicarFiltro() {
+
+        String texto = buscador.getValue() == null
+                ? ""
+                : buscador.getValue().trim().toLowerCase(Locale.ROOT);
+
+        grid.setItems(estudiantes.stream()
+                .filter(e -> texto.isEmpty()
+                        || e.nombre().toLowerCase(Locale.ROOT).contains(texto)
+                        || e.correo().toLowerCase(Locale.ROOT).contains(texto))
+                .toList());
+    }
+
+    private Component crearBarra(AvanceEstudianteDTO fila) {
+
+        if (fila.asignaciones() == 0) {
+            Span sinDatos = new Span("Sin asignaciones");
+            sinDatos.getStyle().set("font-size", "12px").set("color", "#94A3B8");
+            return sinDatos;
+        }
+
+        ProgressBar barra = new ProgressBar(0, 100, fila.porcentajeCompletado());
+        barra.setWidth("90px");
+
+        Span valor = new Span(fila.porcentajeCompletado() + " %");
+        valor.getStyle().set("font-size", "12px");
+
+        HorizontalLayout contenedor = new HorizontalLayout(barra, valor);
+        contenedor.setAlignItems(FlexComponent.Alignment.CENTER);
+        return contenedor;
+    }
+
+    private Div crearIndicador(String titulo, String valor, String detalle) {
+
+        Span etiqueta = new Span(titulo);
+        etiqueta.getStyle()
+                .set("font-size", "13px")
+                .set("font-weight", "600")
+                .set("color", "#475569");
+
+        Span numero = new Span(valor);
+        numero.getStyle()
+                .set("font-size", "28px")
+                .set("font-weight", "800")
+                .set("color", "#1769AA");
+
+        Span descripcion = new Span(detalle);
+        descripcion.getStyle().set("font-size", "12px").set("color", "#64748B");
+
+        Div tarjeta = new Div(etiqueta, numero, descripcion);
         tarjeta.getStyle()
+                .set("display", "flex")
+                .set("flex-direction", "column")
+                .set("gap", "4px")
+                .set("padding", "16px")
                 .set("background", "#FFFFFF")
-                .set("padding", "20px")
-                .set("border-radius", "12px")
                 .set("border", "1px solid #E2E8F0")
-                .set("box-sizing", "border-box")
-                .set("flex", "1 1 190px")
-                .set("min-width", "190px");
+                .set("border-radius", "12px");
 
         return tarjeta;
     }
@@ -187,12 +279,14 @@ public class AdminEmpresaView extends VerticalLayout {
         Authentication autenticacion =
                 SecurityContextHolder.getContext().getAuthentication();
 
-        return usuarioRepository.findByCorreo(
-                autenticacion.getName()
-        ).orElseThrow(() ->
-                new IllegalStateException(
-                        "No se encontró el usuario autenticado."
-                )
-        );
+        if (autenticacion == null) {
+            return null;
+        }
+
+        // findByCorreo no carga la empresa (relacion LAZY); findById tiene
+        // EntityGraph con "empresa", asi se evita LazyInitializationException.
+        return usuarioRepository.findByCorreo(autenticacion.getName())
+                .flatMap(u -> usuarioRepository.findById(u.getId()))
+                .orElse(null);
     }
 }

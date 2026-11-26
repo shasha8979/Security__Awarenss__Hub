@@ -1,7 +1,7 @@
 
 package com.sah.repository;
 
-import com.sah.entity.Usuario;
+import com.sah.model.Usuario;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;

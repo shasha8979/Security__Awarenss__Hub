@@ -1,19 +1,16 @@
 
-package com.sah.entity;
+package com.sah.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "evaluaciones")
-public class Evaluacion {
+@Table(name = "cursos")
+public class Curso {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
-    @Column(name = "curso_id", nullable = false)
-    private Integer cursoId;
 
     @Column(nullable = false, length = 150)
     private String titulo;
@@ -21,24 +18,30 @@ public class Evaluacion {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String descripcion;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "nivel_dificultad", nullable = false)
+    private NivelDificultad nivelDificultad;
+
+    @Column(nullable = false)
+    private Integer duracion;
+
+    @Column(name = "numero_modulos", nullable = false)
+    private Integer numeroModulos;
+
     @Column(name = "porcentaje_aprobacion", nullable = false)
     private Integer porcentajeAprobacion;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private EstadoEvaluacion estado;
+    private EstadoCurso estado;
 
-    @Column(
-        name = "fecha_creacion",
-        insertable = false,
-        updatable = false
-    )
+    @Column(name = "fecha_creacion",
+            insertable = false,
+            updatable = false)
     private LocalDateTime fechaCreacion;
 
-    public Evaluacion() {
+    public Curso() {
     }
-
-    // Getters y setters
 
     public Integer getId() {
         return id;
@@ -46,14 +49,6 @@ public class Evaluacion {
 
     public void setId(Integer id) {
         this.id = id;
-    }
-
-    public Integer getCursoId() {
-        return cursoId;
-    }
-
-    public void setCursoId(Integer cursoId) {
-        this.cursoId = cursoId;
     }
 
     public String getTitulo() {
@@ -72,6 +67,30 @@ public class Evaluacion {
         this.descripcion = descripcion;
     }
 
+    public NivelDificultad getNivelDificultad() {
+        return nivelDificultad;
+    }
+
+    public void setNivelDificultad(NivelDificultad nivelDificultad) {
+        this.nivelDificultad = nivelDificultad;
+    }
+
+    public Integer getDuracion() {
+        return duracion;
+    }
+
+    public void setDuracion(Integer duracion) {
+        this.duracion = duracion;
+    }
+
+    public Integer getNumeroModulos() {
+        return numeroModulos;
+    }
+
+    public void setNumeroModulos(Integer numeroModulos) {
+        this.numeroModulos = numeroModulos;
+    }
+
     public Integer getPorcentajeAprobacion() {
         return porcentajeAprobacion;
     }
@@ -80,11 +99,11 @@ public class Evaluacion {
         this.porcentajeAprobacion = porcentajeAprobacion;
     }
 
-    public EstadoEvaluacion getEstado() {
+    public EstadoCurso getEstado() {
         return estado;
     }
 
-    public void setEstado(EstadoEvaluacion estado) {
+    public void setEstado(EstadoCurso estado) {
         this.estado = estado;
     }
 
@@ -92,8 +111,11 @@ public class Evaluacion {
         return fechaCreacion;
     }
 
-    public enum EstadoEvaluacion {
-        activo,
-        inactivo
+    public enum NivelDificultad {
+        basico, intermedio, avanzado
+    }
+
+    public enum EstadoCurso {
+        activo, inactivo
     }
 }

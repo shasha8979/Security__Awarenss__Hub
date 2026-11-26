@@ -1,8 +1,8 @@
 
 package com.sah.views;
 
-import com.sah.entity.Empresa;
-import com.sah.entity.Usuario;
+import com.sah.model.Empresa;
+import com.sah.model.Usuario;
 import com.sah.service.UsuarioService;
 
 import com.vaadin.flow.component.button.Button;

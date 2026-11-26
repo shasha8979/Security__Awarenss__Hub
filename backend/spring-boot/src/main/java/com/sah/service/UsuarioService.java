@@ -1,10 +1,14 @@
 
 package com.sah.service;
 
-import com.sah.entity.Empresa;
-import com.sah.entity.Usuario;
+import com.sah.exception.DatoDuplicadoException;
+import com.sah.exception.RecursoNoEncontradoException;
+import com.sah.model.Empresa;
+import com.sah.model.Usuario;
 import com.sah.repository.EmpresaRepository;
 import com.sah.repository.UsuarioRepository;
+
+import jakarta.persistence.EntityManager;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,15 +23,18 @@ public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final EmpresaRepository empresaRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EntityManager entityManager;
 
     public UsuarioService(
             UsuarioRepository usuarioRepository,
             EmpresaRepository empresaRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            EntityManager entityManager) {
 
         this.usuarioRepository = usuarioRepository;
         this.empresaRepository = empresaRepository;
         this.passwordEncoder = passwordEncoder;
+        this.entityManager = entityManager;
     }
 
     @Transactional(readOnly = true)
@@ -39,10 +46,42 @@ public class UsuarioService {
     public Usuario buscarPorId(Integer id) {
         return usuarioRepository.findById(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "No se encontró el usuario."
+                        new RecursoNoEncontradoException(
+                                "No existe un usuario con id " + id + "."
                         )
                 );
+    }
+
+    /**
+     * Activa o desactiva un usuario. Un usuario inactivo no puede
+     * iniciar sesion (lo verifica UsuarioDetailsService).
+     *
+     * @param correoSolicitante correo del usuario autenticado que hace
+     *                          la operacion; no puede desactivarse a si mismo
+     */
+    public Usuario establecerEstado(
+            Integer id,
+            String estado,
+            String correoSolicitante) {
+
+        if (estado == null || !List.of("activo", "inactivo").contains(estado)) {
+            throw new IllegalArgumentException(
+                    "El estado debe ser activo o inactivo."
+            );
+        }
+
+        Usuario usuario = buscarPorId(id);
+
+        if ("inactivo".equals(estado)
+                && usuario.getCorreo().equalsIgnoreCase(correoSolicitante)) {
+            throw new IllegalArgumentException(
+                    "No puedes desactivar tu propia cuenta."
+            );
+        }
+
+        usuario.setEstado(estado);
+
+        return usuarioRepository.save(usuario);
     }
 
     @Transactional(readOnly = true)
@@ -61,11 +100,21 @@ public class UsuarioService {
 
         validarDatos(usuario, password, null);
 
+        // Se guardan los mismos valores que se validaron (sin espacios)
+        usuario.setNombres(usuario.getNombres().trim());
+        usuario.setApellidos(usuario.getApellidos().trim());
+        usuario.setCorreo(usuario.getCorreo().trim());
+
         usuario.setPassword(passwordEncoder.encode(password));
 
         asignarEmpresa(usuario, empresaId);
 
-        return usuarioRepository.save(usuario);
+        Usuario guardado = usuarioRepository.saveAndFlush(usuario);
+
+        // fecha_registro la asigna MariaDB; se recarga para devolverla
+        entityManager.refresh(guardado);
+
+        return guardado;
     }
 
     public Usuario actualizarUsuario(
@@ -132,13 +181,13 @@ public class UsuarioService {
 
         if (idActual == null) {
             if (usuarioRepository.existsByCorreo(correo)) {
-                throw new IllegalArgumentException(
+                throw new DatoDuplicadoException(
                         "Ya existe un usuario con ese correo."
                 );
             }
         } else if (usuarioRepository.existsByCorreoAndIdNot(
                 correo, idActual)) {
-            throw new IllegalArgumentException(
+            throw new DatoDuplicadoException(
                     "Ese correo ya pertenece a otro usuario."
             );
         }

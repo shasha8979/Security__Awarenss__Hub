@@ -1,10 +1,10 @@
 
 package com.sah.service;
 
-import com.sah.entity.Asignacion;
-import com.sah.entity.Usuario;
-import com.sah.entity.Curso;
-import com.sah.entity.Evaluacion;
+import com.sah.model.Asignacion;
+import com.sah.model.Usuario;
+import com.sah.model.Curso;
+import com.sah.model.Evaluacion;
 
 import com.sah.repository.AsignacionRepository;
 import com.sah.repository.UsuarioRepository;

@@ -1,7 +1,7 @@
 
 package com.sah.repository;
 
-import com.sah.entity.Empresa;
+import com.sah.model.Empresa;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

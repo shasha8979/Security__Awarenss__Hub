@@ -1,8 +1,8 @@
 
 package com.sah.views;
 
-import com.sah.entity.Asignacion;
-import com.sah.entity.Usuario;
+import com.sah.model.Asignacion;
+import com.sah.model.Usuario;
 import com.sah.repository.AsignacionRepository;
 import com.sah.repository.UsuarioRepository;
 

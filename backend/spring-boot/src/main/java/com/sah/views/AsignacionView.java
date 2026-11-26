@@ -1,10 +1,10 @@
 
 package com.sah.views;
 
-import com.sah.entity.Asignacion;
-import com.sah.entity.Usuario;
-import com.sah.entity.Curso;
-import com.sah.entity.Evaluacion;
+import com.sah.model.Asignacion;
+import com.sah.model.Usuario;
+import com.sah.model.Curso;
+import com.sah.model.Evaluacion;
 
 import com.sah.repository.AsignacionRepository;
 import com.sah.repository.UsuarioRepository;
@@ -36,7 +36,8 @@ import java.util.List;
 
 @Route(value = "asignaciones", layout = MainLayout.class)
 @PageTitle("Asignaciones | Security Awareness Hub")
-@RolesAllowed({"ADMIN", "ADMIN_EMPRESA", "EMPLEADO"})
+// El estudiante consulta lo suyo en "mis-capacitaciones"; aqui no asigna.
+@RolesAllowed({"ADMIN", "ADMIN_EMPRESA"})
 public class AsignacionView extends VerticalLayout {
 
     private final AsignacionService asignacionService;
