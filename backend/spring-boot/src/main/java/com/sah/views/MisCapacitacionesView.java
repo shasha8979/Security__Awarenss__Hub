@@ -6,6 +6,8 @@ import com.sah.entity.Usuario;
 import com.sah.repository.AsignacionRepository;
 import com.sah.repository.UsuarioRepository;
 
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H2;
@@ -14,8 +16,6 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.dialog.Dialog;
 
 import jakarta.annotation.security.RolesAllowed;
 
@@ -33,7 +33,8 @@ public class MisCapacitacionesView extends VerticalLayout {
     private final AsignacionRepository asignacionRepository;
     private final UsuarioRepository usuarioRepository;
 
-    private final Grid<Asignacion> grid = new Grid<>(Asignacion.class, false);
+    private final Grid<Asignacion> grid =
+            new Grid<>(Asignacion.class, false);
 
     public MisCapacitacionesView(
             AsignacionRepository asignacionRepository,
@@ -67,7 +68,7 @@ public class MisCapacitacionesView extends VerticalLayout {
                 new H1("Mis capacitaciones"),
                 new Paragraph(
                         "Aquí puedes consultar los cursos y las evaluaciones "
-                        + "asignados a tu cuenta."
+                                + "asignados a tu cuenta."
                 )
         );
 
@@ -77,13 +78,16 @@ public class MisCapacitacionesView extends VerticalLayout {
                 asignacionRepository.findByUsuario_Id(estudiante.getId());
 
         if (asignaciones.isEmpty()) {
-            add(new Paragraph(
-                    "Todavía no tienes capacitaciones asignadas."
-            ));
+            add(
+                    new Paragraph(
+                            "Todavía no tienes capacitaciones asignadas."
+                    )
+            );
             return;
         }
 
         add(new H2("Contenido asignado"));
+
         grid.setItems(asignaciones);
         add(grid);
     }
@@ -97,8 +101,7 @@ public class MisCapacitacionesView extends VerticalLayout {
                 .setAutoWidth(true)
                 .setFlexGrow(2);
 
-        grid.addColumn(asignacion ->
-                        obtenerTipo(asignacion))
+        grid.addColumn(this::obtenerTipo)
                 .setHeader("Tipo")
                 .setAutoWidth(true);
 
@@ -110,24 +113,25 @@ public class MisCapacitacionesView extends VerticalLayout {
         grid.addColumn(asignacion ->
                         asignacion.getFechaAsignacion() == null
                                 ? "Sin fecha"
-                                : asignacion.getFechaAsignacion()
-                                        .format(DateTimeFormatter.ofPattern(
+                                : asignacion.getFechaAsignacion().format(
+                                        DateTimeFormatter.ofPattern(
                                                 "dd/MM/yyyy HH:mm"
-                                        )))
+                                        )
+                                )
+                )
                 .setHeader("Fecha de asignación")
                 .setAutoWidth(true);
 
-                grid.addComponentColumn(asignacion -> {
+        grid.addComponentColumn(asignacion -> {
 
-                    Button boton = new Button("Ver contenido");
-                
-                    boton.addClickListener(event ->
-                            abrirContenido(asignacion)
-                    );
-                
-                    return boton;
-                
-                }).setHeader("Acciones").setAutoWidth(true);
+            Button boton = new Button(
+                    "Ver contenido",
+                    event -> abrirContenido(asignacion)
+            );
+
+            return boton;
+
+        }).setHeader("Acciones").setAutoWidth(true);
 
         grid.setWidthFull();
     }
@@ -165,27 +169,31 @@ public class MisCapacitacionesView extends VerticalLayout {
         String texto;
         String color;
 
-        switch (estado) {
+        if (estado == null) {
+            texto = "Sin estado";
+            color = "gray";
+        } else {
+            switch (estado) {
+                case pendiente:
+                    texto = "Pendiente";
+                    color = "orange";
+                    break;
 
-            case pendiente:
-                texto = "Pendiente";
-                color = "orange";
-                break;
+                case progreso:
+                    texto = "En progreso";
+                    color = "blue";
+                    break;
 
-            case progreso:
-                texto = "En progreso";
-                color = "blue";
-                break;
+                case completado:
+                    texto = "Completada";
+                    color = "green";
+                    break;
 
-            case completado:
-                texto = "Completada";
-                color = "green";
-                break;
-
-            default:
-                texto = "Sin estado";
-                color = "gray";
-                break;
+                default:
+                    texto = "Sin estado";
+                    color = "gray";
+                    break;
+            }
         }
 
         Span etiqueta = new Span(texto);
@@ -209,76 +217,77 @@ public class MisCapacitacionesView extends VerticalLayout {
             return null;
         }
 
-        return usuarioRepository
+              return usuarioRepository
                 .findByCorreo(authentication.getName())
                 .orElse(null);
     }
-}
 
+    private void abrirContenido(Asignacion asignacion) {
 
+        Dialog dialogo = new Dialog();
+        dialogo.setWidth("550px");
 
-private void abrirContenido(Asignacion asignacion) {
+        VerticalLayout contenido = new VerticalLayout();
+        contenido.setPadding(true);
+        contenido.setSpacing(true);
 
-    Dialog dialogo = new Dialog();
-    dialogo.setWidth("550px");
+        if (asignacion.getTipo() == Asignacion.Tipo.curso) {
 
-    VerticalLayout contenido = new VerticalLayout();
-    contenido.setPadding(true);
-    contenido.setSpacing(true);
+            if (asignacion.getCurso() == null) {
+                contenido.add(
+                        new H2("Curso no disponible"),
+                        new Paragraph(
+                                "No se encontró la información del curso."
+                        )
+                );
+            } else {
+                contenido.add(
+                        new H2(asignacion.getCurso().getTitulo()),
+                        new Paragraph("Tipo de capacitación: Curso"),
+                        new Paragraph(
+                                asignacion.getCurso().getDescripcion() == null
+                                        ? "No hay descripción disponible."
+                                        : asignacion.getCurso().getDescripcion()
+                        )
+                );
+            }
 
-    if (asignacion.getTipo() == Asignacion.Tipo.curso) {
+        } else if (asignacion.getTipo()
+                == Asignacion.Tipo.evaluacion) {
 
-        if (asignacion.getCurso() == null) {
-            contenido.add(
-                    new H2("Curso no disponible"),
-                    new Paragraph(
-                            "No se encontró la información del curso."
-                    )
-            );
-        } else {
-
-            contenido.add(
-                    new H2(asignacion.getCurso().getTitulo()),
-                    new Paragraph("Tipo de capacitación: Curso"),
-                    new Paragraph(
-                            asignacion.getCurso().getDescripcion() == null
-                                    ? "No hay descripción disponible."
-                                    : asignacion.getCurso().getDescripcion()
-                    )
-            );
+            if (asignacion.getEvaluacion() == null) {
+                contenido.add(
+                        new H2("Evaluación no disponible"),
+                        new Paragraph(
+                                "No se encontró la información de la evaluación."
+                        )
+                );
+            } else {
+                contenido.add(
+                        new H2(asignacion.getEvaluacion().getTitulo()),
+                        new Paragraph("Tipo de capacitación: Evaluación"),
+                        new Paragraph(
+                                asignacion.getEvaluacion().getDescripcion() == null
+                                        ? "No hay descripción disponible."
+                                        : asignacion.getEvaluacion().getDescripcion()
+                        ),
+                        new Paragraph(
+                                "Porcentaje mínimo de aprobación: "
+                                        + asignacion.getEvaluacion()
+                                                .getPorcentajeAprobacion()
+                                        + "%"
+                        )
+                );
+            }
         }
 
-    } else if (asignacion.getTipo() == Asignacion.Tipo.evaluacion) {
+        Button cerrar = new Button(
+                "Cerrar",
+                event -> dialogo.close()
+        );
 
-        if (asignacion.getEvaluacion() == null) {
-            contenido.add(
-                    new H2("Evaluación no disponible"),
-                    new Paragraph(
-                            "No se encontró la información de la evaluación."
-                    )
-            );
-        } else {
-
-            contenido.add(
-                    new H2(asignacion.getEvaluacion().getTitulo()),
-                    new Paragraph("Tipo de capacitación: Evaluación"),
-                    new Paragraph(
-                            asignacion.getEvaluacion().getDescripcion() == null
-                                    ? "No hay descripción disponible."
-                                    : asignacion.getEvaluacion().getDescripcion()
-                    ),
-                    new Paragraph(
-                            "Porcentaje mínimo de aprobación: "
-                            + asignacion.getEvaluacion()
-                                    .getPorcentajeAprobacion() + "%"
-                    )
-            );
-        }
+        contenido.add(cerrar);
+        dialogo.add(contenido);
+        dialogo.open();
     }
-
-    Button cerrar = new Button("Cerrar", event -> dialogo.close());
-
-    contenido.add(cerrar);
-    dialogo.add(contenido);
-    dialogo.open();
 }

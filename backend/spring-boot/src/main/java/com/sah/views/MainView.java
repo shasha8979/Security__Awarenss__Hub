@@ -1,13 +1,15 @@
 
 package com.sah.views;
 
+import com.sah.entity.Asignacion;
 import com.sah.entity.Usuario;
+
 import com.sah.repository.UsuarioRepository;
 import com.sah.repository.EmpresaRepository;
 import com.sah.repository.CursoRepository;
 import com.sah.repository.EvaluacionRepository;
 import com.sah.repository.AsignacionRepository;
-import com.sah.entity.Asignacion;
+
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
@@ -25,6 +27,8 @@ import jakarta.annotation.security.RolesAllowed;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.util.List;
+
 @Route(value = "", layout = MainLayout.class)
 @PageTitle("Dashboard | Security Awareness Hub")
 @RolesAllowed({"ADMIN", "ADMIN_EMPRESA", "EMPLEADO"})
@@ -36,27 +40,27 @@ public class MainView extends VerticalLayout {
     private final EvaluacionRepository evaluacionRepository;
     private final AsignacionRepository asignacionRepository;
 
-public MainView(
-        UsuarioRepository usuarioRepository,
-        EmpresaRepository empresaRepository,
-        CursoRepository cursoRepository,
-        EvaluacionRepository evaluacionRepository) {
+    public MainView(
+            UsuarioRepository usuarioRepository,
+            EmpresaRepository empresaRepository,
+            CursoRepository cursoRepository,
+            EvaluacionRepository evaluacionRepository,
+            AsignacionRepository asignacionRepository) {
 
-    this.usuarioRepository = usuarioRepository;
-    this.empresaRepository = empresaRepository;
-    this.cursoRepository = cursoRepository;
-    this.evaluacionRepository = evaluacionRepository;
-    this.asignacionRepository = asignacionRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.empresaRepository = empresaRepository;
+        this.cursoRepository = cursoRepository;
+        this.evaluacionRepository = evaluacionRepository;
+        this.asignacionRepository = asignacionRepository;
 
-    setSizeFull();
-    setPadding(true);
-    setSpacing(true);
-    setDefaultHorizontalComponentAlignment(
-            Alignment.CENTER
-    );
+        setSizeFull();
+        setPadding(true);
+        setSpacing(true);
+        setDefaultHorizontalComponentAlignment(Alignment.CENTER);
 
-    construirDashboard();
-}
+        construirDashboard();
+    }
+
     private void construirDashboard() {
 
         Usuario usuario = obtenerUsuarioActual();
@@ -84,17 +88,16 @@ public MainView(
         );
 
         switch (rol) {
-
             case "admin":
                 construirPanelAdministrador(contenido);
                 break;
 
             case "admin_empresa":
-                construirPanelEmpresa(contenido);
+                construirPanelEmpresa(contenido, usuario);
                 break;
 
             case "empleado":
-                construirPanelEstudiante(contenido);
+                construirPanelEstudiante(contenido, usuario);
                 break;
 
             default:
@@ -111,7 +114,7 @@ public MainView(
 
     private void construirPanelAdministrador(
             VerticalLayout contenido) {
-                construirEstadisticasAdministrador(contenido);        
+
         contenido.add(
                 new H2("Panel de administración"),
                 new Paragraph(
@@ -120,9 +123,11 @@ public MainView(
                 )
         );
 
+        construirEstadisticasAdministrador(contenido);
+
         HorizontalLayout tarjetas = new HorizontalLayout();
         tarjetas.setWidthFull();
-        tarjetas.setFlexWrap(true);
+        tarjetas.getStyle().set("flex-wrap", "wrap");
 
         tarjetas.add(
                 crearTarjeta(
@@ -151,7 +156,8 @@ public MainView(
     }
 
     private void construirPanelEmpresa(
-            VerticalLayout contenido) {
+            VerticalLayout contenido,
+            Usuario administrador) {
 
         contenido.add(
                 new H2("Panel de capacitación empresarial"),
@@ -160,6 +166,8 @@ public MainView(
                                 + "las capacitaciones de tu empresa."
                 )
         );
+
+        construirEstadisticasEmpresa(contenido, administrador);
 
         contenido.add(
                 crearTarjeta(
@@ -172,11 +180,9 @@ public MainView(
     }
 
     private void construirPanelEstudiante(
-            VerticalLayout contenido) {
-                construirEstadisticasEstudiante(
-                        contenido,
-                        obtenerUsuarioActual()
-                ); 
+            VerticalLayout contenido,
+            Usuario estudiante) {
+
         contenido.add(
                 new H2("Mi espacio de aprendizaje"),
                 new Paragraph(
@@ -185,12 +191,14 @@ public MainView(
                 )
         );
 
+        construirEstadisticasEstudiante(contenido, estudiante);
+
         contenido.add(
                 crearTarjeta(
                         "Mis capacitaciones",
                         "Consulta los cursos y evaluaciones "
                                 + "que te han asignado.",
-                                MisCapacitacionesView.class
+                        MisCapacitacionesView.class
                 )
         );
     }
@@ -215,10 +223,7 @@ public MainView(
 
         Paragraph texto = new Paragraph(descripcion);
 
-        RouterLink enlace = new RouterLink(
-                "Acceder",
-                destino
-        );
+        RouterLink enlace = new RouterLink("Acceder", destino);
 
         tarjeta.add(encabezado, texto, enlace);
 
@@ -228,8 +233,7 @@ public MainView(
     private Usuario obtenerUsuarioActual() {
 
         Authentication authentication =
-                SecurityContextHolder.getContext()
-                        .getAuthentication();
+                SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null
                 || !authentication.isAuthenticated()
@@ -241,204 +245,166 @@ public MainView(
                 .findByCorreo(authentication.getName())
                 .orElse(null);
     }
-}
 
+    private void construirEstadisticasAdministrador(
+            VerticalLayout contenido) {
 
+        HorizontalLayout estadisticas = new HorizontalLayout();
+        estadisticas.setWidthFull();
+        estadisticas.getStyle().set("flex-wrap", "wrap");
 
-private void construirEstadisticasAdministrador(
-        VerticalLayout contenido) {
-
-    HorizontalLayout estadisticas = new HorizontalLayout();
-    estadisticas.setWidthFull();
-    estadisticas.setFlexWrap(true);
-
-    estadisticas.add(
-            crearIndicador(
-                    "Empresas registradas",
-                    empresaRepository.count(),
-                    "building-2"
-            ),
-            crearIndicador(
-                    "Usuarios registrados",
-                    usuarioRepository.count(),
-                    "users"
-            ),
-            crearIndicador(
-                    "Cursos registrados",
-                    cursoRepository.count(),
-                    "book-open"
-            ),
-            crearIndicador(
-                    "Evaluaciones registradas",
-                    evaluacionRepository.count(),
-                    "clipboard-check"
-            )
-    );
-
-    contenido.add(estadisticas);
-}
-
-
-private void construirEstadisticasEmpresa(
-        VerticalLayout contenido,
-        Usuario administrador) {
-
-    if (administrador.getEmpresa() == null) {
-        contenido.add(
-                new Paragraph(
-                        "Tu cuenta no tiene una empresa asociada."
+        estadisticas.add(
+                crearIndicador(
+                        "Empresas registradas",
+                        empresaRepository.count()
+                ),
+                crearIndicador(
+                        "Usuarios registrados",
+                        usuarioRepository.count()
+                ),
+                crearIndicador(
+                        "Cursos registrados",
+                        cursoRepository.count()
+                ),
+                crearIndicador(
+                        "Evaluaciones registradas",
+                        evaluacionRepository.count()
                 )
         );
-        return;
+
+        contenido.add(estadisticas);
     }
 
-    Integer empresaId = administrador.getEmpresa().getId();
+    private void construirEstadisticasEmpresa(
+            VerticalLayout contenido,
+            Usuario administrador) {
 
-    long totalEstudiantes = usuarioRepository
-            .findByEmpresa_Id(empresaId)
-            .stream()
-            .filter(usuario ->
-                    "empleado".equalsIgnoreCase(usuario.getRol())
-                    && "activo".equalsIgnoreCase(usuario.getEstado())
-            )
-            .count();
+        if (administrador.getEmpresa() == null) {
+            contenido.add(
+                    new Paragraph(
+                            "Tu cuenta no tiene una empresa asociada."
+                    )
+            );
+            return;
+        }
 
-    var asignaciones = asignacionRepository
-            .findByUsuario_Empresa_Id(empresaId);
+        Integer empresaId = administrador.getEmpresa().getId();
 
-    long totalAsignaciones = asignaciones.size();
+        List<Usuario> usuariosEmpresa =
+                usuarioRepository.findByEmpresa_Id(empresaId);
 
-    long pendientes = asignaciones.stream()
-            .filter(asignacion ->
-                    asignacion.getEstado() == Asignacion.Estado.pendiente)
-            .count();
+        long totalEstudiantes = usuariosEmpresa.stream()
+                .filter(usuario ->
+                        "empleado".equalsIgnoreCase(usuario.getRol())
+                                && "activo".equalsIgnoreCase(
+                                        usuario.getEstado()
+                                )
+                )
+                .count();
 
-    long completadas = asignaciones.stream()
-            .filter(asignacion ->
-                    asignacion.getEstado() == Asignacion.Estado.completado)
-            .count();
+        List<Asignacion> asignaciones =
+                asignacionRepository.findByUsuario_Empresa_Id(empresaId);
 
-    HorizontalLayout estadisticas = new HorizontalLayout();
-    estadisticas.setWidthFull();
-    estadisticas.setFlexWrap(true);
+        long totalAsignaciones = asignaciones.size();
 
-    estadisticas.add(
-            crearIndicador(
-                    "Estudiantes activos",
-                    totalEstudiantes,
-                    "users"
-            ),
-            crearIndicador(
-                    "Capacitaciones asignadas",
-                    totalAsignaciones,
-                    "book-open"
-            ),
-            crearIndicador(
-                    "Pendientes",
-                    pendientes,
-                    "clock"
-            ),
-            crearIndicador(
-                    "Completadas",
-                    completadas,
-                    "circle-check"
-            )
-    );
+        long pendientes = asignaciones.stream()
+                .filter(asignacion ->
+                        asignacion.getEstado()
+                                == Asignacion.Estado.pendiente
+                )
+                .count();
 
-    contenido.add(estadisticas);
-}
+        long completadas = asignaciones.stream()
+                .filter(asignacion ->
+                        asignacion.getEstado()
+                                == Asignacion.Estado.completado
+                )
+                .count();
 
+        HorizontalLayout estadisticas = new HorizontalLayout();
+        estadisticas.setWidthFull();
+        estadisticas.getStyle().set("flex-wrap", "wrap");
 
-
-private void construirEstadisticasEstudiante(
-        VerticalLayout contenido,
-        Usuario estudiante) {
-
-    if (estudiante == null) {
-        contenido.add(
-                new Paragraph("No se pudo identificar al estudiante.")
+        estadisticas.add(
+                crearIndicador("Estudiantes activos", totalEstudiantes),
+                crearIndicador("Capacitaciones asignadas", totalAsignaciones),
+                crearIndicador("Pendientes", pendientes),
+                crearIndicador("Completadas", completadas)
         );
-        return;
+
+        contenido.add(estadisticas);
     }
 
-    var asignaciones = asignacionRepository
-            .findByUsuario_Id(estudiante.getId());
+    private void construirEstadisticasEstudiante(
+            VerticalLayout contenido,
+            Usuario estudiante) {
 
-    long total = asignaciones.size();
+        List<Asignacion> asignaciones =
+                asignacionRepository.findByUsuario_Id(estudiante.getId());
 
-    long pendientes = asignaciones.stream()
-            .filter(asignacion ->
-                    asignacion.getEstado() == Asignacion.Estado.pendiente)
-            .count();
+        long total = asignaciones.size();
 
-    long enProgreso = asignaciones.stream()
-            .filter(asignacion ->
-                    asignacion.getEstado() == Asignacion.Estado.progreso)
-            .count();
+        long pendientes = asignaciones.stream()
+                .filter(asignacion ->
+                        asignacion.getEstado()
+                                == Asignacion.Estado.pendiente
+                )
+                .count();
 
-    long completadas = asignaciones.stream()
-            .filter(asignacion ->
-                    asignacion.getEstado() == Asignacion.Estado.completado)
-            .count();
+        long enProgreso = asignaciones.stream()
+                .filter(asignacion ->
+                        asignacion.getEstado()
+                                == Asignacion.Estado.progreso
+                )
+                .count();
 
-    HorizontalLayout estadisticas = new HorizontalLayout();
-    estadisticas.setWidthFull();
-    estadisticas.setFlexWrap(true);
+        long completadas = asignaciones.stream()
+                .filter(asignacion ->
+                        asignacion.getEstado()
+                                == Asignacion.Estado.completado
+                )
+                .count();
 
-    estadisticas.add(
-            crearIndicador(
-                    "Mis capacitaciones",
-                    total,
-                    "book-open"
-            ),
-            crearIndicador(
-                    "Pendientes",
-                    pendientes,
-                    "clock"
-            ),
-            crearIndicador(
-                    "En progreso",
-                    enProgreso,
-                    "activity"
-            ),
-            crearIndicador(
-                    "Completadas",
-                    completadas,
-                    "circle-check"
-            )
-    );
+        HorizontalLayout estadisticas = new HorizontalLayout();
+        estadisticas.setWidthFull();
+        estadisticas.getStyle().set("flex-wrap", "wrap");
 
-    contenido.add(estadisticas);
-}
+        estadisticas.add(
+                crearIndicador("Mis capacitaciones", total),
+                crearIndicador("Pendientes", pendientes),
+                crearIndicador("En progreso", enProgreso),
+                crearIndicador("Completadas", completadas)
+        );
 
+        contenido.add(estadisticas);
+    }
 
+    private Div crearIndicador(
+            String titulo,
+            long cantidad) {
 
-private Div crearIndicador(
-        String titulo,
-        long cantidad,
-        String icono) {
+        Div tarjeta = new Div();
 
-    Div tarjeta = new Div();
+        tarjeta.setWidth("220px");
+        tarjeta.getStyle()
+                .set("padding", "20px")
+                .set("border-radius", "12px")
+                .set("border", "1px solid var(--lumo-contrast-10pct)")
+                .set("background", "var(--lumo-base-color)")
+                .set("box-shadow", "0 2px 8px rgba(0,0,0,0.06)");
 
-    tarjeta.setWidth("220px");
-    tarjeta.getStyle()
-            .set("padding", "20px")
-            .set("border-radius", "12px")
-            .set("border", "1px solid var(--lumo-contrast-10pct)")
-            .set("background", "var(--lumo-base-color)")
-            .set("box-shadow", "0 2px 8px rgba(0,0,0,0.06)");
+        Span nombre = new Span(titulo);
+        nombre.getStyle()
+                .set("font-size", "14px")
+                .set("color", "var(--lumo-secondary-text-color)");
 
-    Span nombre = new Span(titulo);
-    nombre.getStyle()
-            .set("font-size", "14px")
-            .set("color", "var(--lumo-secondary-text-color)");
+        H1 valor = new H1(String.valueOf(cantidad));
+        valor.getStyle()
+                .set("font-size", "30px")
+                .set("margin", "12px 0 0 0");
 
-    H1 valor = new H1(String.valueOf(cantidad));
-    valor.getStyle()
-            .set("font-size", "30px")
-            .set("margin", "12px 0 0 0");
+        tarjeta.add(nombre, valor);
 
-    tarjeta.add(nombre, valor);
-
-    return tarjeta;
+        return tarjeta;
+    }
 }

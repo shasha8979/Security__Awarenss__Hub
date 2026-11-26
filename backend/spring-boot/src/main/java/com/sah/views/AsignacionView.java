@@ -25,17 +25,14 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
-import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import java.util.ArrayList;
-import java.util.List;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Route(value = "asignaciones", layout = MainLayout.class)
 @PageTitle("Asignaciones | Security Awareness Hub")
@@ -51,10 +48,8 @@ public class AsignacionView extends VerticalLayout {
     private final Grid<Asignacion> tabla =
             new Grid<>(Asignacion.class, false);
 
-    // FORMULARIO
-
     private final ComboBox<Usuario> empleado =
-            new ComboBox<>("Seleccionar empleado");
+            new ComboBox<>("Seleccionar estudiante");
 
     private final ComboBox<Asignacion.Tipo> tipo =
             new ComboBox<>("Tipo de asignación");
@@ -91,10 +86,9 @@ public class AsignacionView extends VerticalLayout {
         setPadding(true);
         setSpacing(true);
 
-        crearEncabezado();
-        crearFormulario();
-        crearFiltros();
-        configurarTabla();
+        formulario.setPadding(true);
+        formulario.setSpacing(true);
+        formulario.setWidthFull();
 
         add(
                 crearEncabezado(),
@@ -103,6 +97,8 @@ public class AsignacionView extends VerticalLayout {
                 tabla
         );
 
+        crearFormulario();
+        configurarTabla();
         actualizarTabla();
     }
 
@@ -113,7 +109,8 @@ public class AsignacionView extends VerticalLayout {
         H2 titulo = new H2("Gestión de asignaciones");
 
         Span descripcion = new Span(
-                "Administra los cursos y evaluaciones asignados a los empleados."
+                "Administra los cursos y evaluaciones asignados "
+                        + "a los estudiantes."
         );
 
         descripcion.getStyle()
@@ -149,26 +146,19 @@ public class AsignacionView extends VerticalLayout {
 
     private void crearFormulario() {
 
-        H2 titulo = new H2("Nueva asignación");
+        H2 tituloFormulario = new H2("Nueva asignación");
 
-        titulo.getStyle()
+        tituloFormulario.getStyle()
                 .set("font-size", "20px")
                 .set("color", "#1769AA");
 
-        empleado.setItems(
-                usuarioRepository.findAll().stream()
-                        .filter(usuario ->
-                                "empleado".equalsIgnoreCase(usuario.getRol())
-                                && "activo".equalsIgnoreCase(usuario.getEstado())
-                        )
-                        .collect(Collectors.toList())
-        );
+        cargarEmpleados();
 
         empleado.setItemLabelGenerator(usuario ->
                 usuario.getNombres() + " " + usuario.getApellidos()
         );
 
-        empleado.setPlaceholder("Selecciona un empleado");
+        empleado.setPlaceholder("Selecciona un estudiante");
         empleado.setWidthFull();
 
         tipo.setItems(Asignacion.Tipo.values());
@@ -178,9 +168,10 @@ public class AsignacionView extends VerticalLayout {
         curso.setItems(
                 cursoRepository.findAll().stream()
                         .filter(item ->
-                                item.getEstado() == Curso.EstadoCurso.activo
+                                item.getEstado()
+                                        == Curso.EstadoCurso.activo
                         )
-                        .collect(Collectors.toList())
+                        .toList()
         );
 
         curso.setItemLabelGenerator(Curso::getTitulo);
@@ -193,7 +184,7 @@ public class AsignacionView extends VerticalLayout {
                                 item.getEstado()
                                         == Evaluacion.EstadoEvaluacion.activo
                         )
-                        .collect(Collectors.toList())
+                        .toList()
         );
 
         evaluacion.setItemLabelGenerator(Evaluacion::getTitulo);
@@ -237,18 +228,15 @@ public class AsignacionView extends VerticalLayout {
 
         campos.setWidthFull();
         campos.setAlignItems(Alignment.END);
+        campos.getStyle().set("flex-wrap", "wrap");
 
         campos.setFlexGrow(1, empleado);
         campos.setFlexGrow(1, tipo);
         campos.setFlexGrow(1, curso);
         campos.setFlexGrow(1, evaluacion);
 
-        formulario.setPadding(true);
-        formulario.setSpacing(true);
-        formulario.setWidthFull();
-
         formulario.add(
-                titulo,
+                tituloFormulario,
                 campos,
                 guardar
         );
@@ -259,42 +247,94 @@ public class AsignacionView extends VerticalLayout {
                 .set("border-radius", "10px")
                 .set("padding", "20px");
 
-        // Mostrar formulario únicamente a administradores.
-
         Authentication autenticacion =
                 SecurityContextHolder.getContext().getAuthentication();
 
         boolean puedeGestionar = false;
 
-        if (autenticacion != null) {
+        if (autenticacion != null
+                && autenticacion.isAuthenticated()) {
 
             puedeGestionar = autenticacion.getAuthorities().stream()
                     .anyMatch(authority -> {
 
                         String autoridad = authority.getAuthority();
 
-                        return "ADMIN".equalsIgnoreCase(autoridad)
-                                || "ROLE_ADMIN".equalsIgnoreCase(autoridad)
-                                || "ADMIN_EMPRESA".equalsIgnoreCase(autoridad)
-                                || "ROLE_ADMIN_EMPRESA".equalsIgnoreCase(autoridad);
+                        return "ROLE_ADMIN".equalsIgnoreCase(autoridad)
+                                || "ROLE_ADMIN_EMPRESA".equalsIgnoreCase(
+                                        autoridad
+                                )
+                                || "ADMIN".equalsIgnoreCase(autoridad)
+                                || "ADMIN_EMPRESA".equalsIgnoreCase(
+                                        autoridad
+                                );
                     });
         }
 
         formulario.setVisible(puedeGestionar);
     }
 
+    // CARGAR ESTUDIANTES SEGUN EL ROL
+
+    private void cargarEmpleados() {
+
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+
+            empleado.setItems(new ArrayList<>());
+            return;
+        }
+
+        Usuario usuarioActual = usuarioRepository
+                .findByCorreo(authentication.getName())
+                .orElse(null);
+
+        if (usuarioActual == null) {
+            empleado.setItems(new ArrayList<>());
+            return;
+        }
+
+        List<Usuario> empleados;
+
+        if ("admin".equalsIgnoreCase(usuarioActual.getRol())) {
+
+            empleados = usuarioRepository.findAll();
+
+        } else if ("admin_empresa".equalsIgnoreCase(
+                usuarioActual.getRol())
+                && usuarioActual.getEmpresa() != null) {
+
+            empleados = usuarioRepository.findByEmpresa_Id(
+                    usuarioActual.getEmpresa().getId()
+            );
+
+        } else {
+
+            empleados = new ArrayList<>();
+        }
+
+        empleados.removeIf(usuario ->
+                !"empleado".equalsIgnoreCase(usuario.getRol())
+                        || !"activo".equalsIgnoreCase(usuario.getEstado())
+        );
+
+        empleado.setItems(empleados);
+    }
+
     // GUARDAR ASIGNACION
 
     private void guardarAsignacion() {
 
-        if (empleado.isEmpty()
-                || tipo.isEmpty()) {
-
+        if (empleado.isEmpty() || tipo.isEmpty()) {
             mostrarNotificacion(
-                    "Debes seleccionar un empleado y un tipo de asignación.",
+                    "Debes seleccionar un estudiante y un tipo "
+                            + "de asignación.",
                     true
             );
-
             return;
         }
 
@@ -356,7 +396,8 @@ public class AsignacionView extends VerticalLayout {
         } catch (Exception e) {
 
             mostrarNotificacion(
-                    "No se pudo crear la asignación: " + e.getMessage(),
+                    "No se pudo crear la asignación: "
+                            + e.getMessage(),
                     true
             );
         }
@@ -406,6 +447,7 @@ public class AsignacionView extends VerticalLayout {
         );
 
         filtros.setAlignItems(Alignment.END);
+        filtros.getStyle().set("flex-wrap", "wrap");
 
         return filtros;
     }
@@ -424,9 +466,9 @@ public class AsignacionView extends VerticalLayout {
 
             return usuario != null
                     ? usuario.getNombres() + " " + usuario.getApellidos()
-                    : "Sin usuario";
+                    : "Sin estudiante";
 
-        }).setHeader("Empleado");
+        }).setHeader("Estudiante");
 
         tabla.addColumn(asignacion -> {
 
@@ -449,28 +491,31 @@ public class AsignacionView extends VerticalLayout {
         }).setHeader("Contenido asignado");
 
         tabla.addColumn(asignacion ->
-                asignacion.getTipo() != null
-                        ? asignacion.getTipo().name()
-                        : "Sin tipo"
-        ).setHeader("Tipo");
+                        asignacion.getTipo() != null
+                                ? asignacion.getTipo().name()
+                                : "Sin tipo"
+                )
+                .setHeader("Tipo");
 
         tabla.addColumn(asignacion ->
-                asignacion.getFechaAsignacion() != null
-                        ? asignacion.getFechaAsignacion().format(
-                                DateTimeFormatter.ofPattern(
-                                        "dd/MM/yyyy HH:mm"
+                        asignacion.getFechaAsignacion() != null
+                                ? asignacion.getFechaAsignacion().format(
+                                        DateTimeFormatter.ofPattern(
+                                                "dd/MM/yyyy HH:mm"
+                                        )
                                 )
-                        )
-                        : "Sin fecha"
-        ).setHeader("Fecha de asignación");
+                                : "Sin fecha"
+                )
+                .setHeader("Fecha de asignación");
 
         tabla.addColumn(asignacion ->
-                asignacion.getEstado() != null
-                        ? asignacion.getEstado().name()
-                        : "Sin estado"
-        ).setHeader("Estado");
+                        asignacion.getEstado() != null
+                                ? asignacion.getEstado().name()
+                                : "Sin estado"
+                )
+                .setHeader("Estado");
 
-        tabla.setSizeFull();
+        tabla.setWidthFull();
         tabla.setAllRowsVisible(true);
     }
 
@@ -529,7 +574,8 @@ public class AsignacionView extends VerticalLayout {
         } catch (Exception e) {
 
             mostrarNotificacion(
-                    "No se pudieron aplicar los filtros.",
+                    "No se pudieron aplicar los filtros: "
+                            + e.getMessage(),
                     true
             );
         }
@@ -542,8 +588,11 @@ public class AsignacionView extends VerticalLayout {
             boolean error) {
 
         Notification notificacion =
-                Notification.show(mensaje, 4000,
-                        Notification.Position.MIDDLE);
+                Notification.show(
+                        mensaje,
+                        4000,
+                        Notification.Position.MIDDLE
+                );
 
         if (error) {
             notificacion.addThemeVariants(
@@ -555,50 +604,4 @@ public class AsignacionView extends VerticalLayout {
             );
         }
     }
-}
-
-
-private void cargarEmpleados() {
-
-    Authentication authentication =
-            SecurityContextHolder.getContext().getAuthentication();
-
-    if (authentication == null || !authentication.isAuthenticated()) {
-        empleado.setItems(new ArrayList<>());
-        return;
-    }
-
-    Usuario usuarioActual = usuarioRepository
-            .findByCorreo(authentication.getName())
-            .orElse(null);
-
-    if (usuarioActual == null) {
-        empleado.setItems(new ArrayList<>());
-        return;
-    }
-
-    List<Usuario> empleados;
-
-    if ("admin".equalsIgnoreCase(usuarioActual.getRol())) {
-
-        empleados = usuarioRepository.findAll();
-
-    } else if ("admin_empresa".equalsIgnoreCase(usuarioActual.getRol())
-            && usuarioActual.getEmpresa() != null) {
-
-        empleados = usuarioRepository.findByEmpresa_Id(
-                usuarioActual.getEmpresa().getId()
-        );
-
-    } else {
-
-        empleados = new ArrayList<>();
-    }
-
-    empleados.removeIf(usuario ->
-            !"empleado".equalsIgnoreCase(usuario.getRol())
-            || !"activo".equalsIgnoreCase(usuario.getEstado())
-    );
-
-    empleado.setItems(empleados);
 }
