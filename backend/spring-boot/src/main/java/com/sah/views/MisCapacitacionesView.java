@@ -2,11 +2,13 @@
 package com.sah.views;
 
 import com.sah.model.Asignacion;
-import com.sah.model.Usuario;
-import com.sah.repository.AsignacionRepository;
-import com.sah.repository.UsuarioRepository;
+import com.sah.service.AsignacionService;
 
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H1;
@@ -19,9 +21,6 @@ import com.vaadin.flow.router.Route;
 
 import jakarta.annotation.security.RolesAllowed;
 
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -30,18 +29,22 @@ import java.util.List;
 @RolesAllowed("EMPLEADO")
 public class MisCapacitacionesView extends VerticalLayout {
 
-    private final AsignacionRepository asignacionRepository;
-    private final UsuarioRepository usuarioRepository;
+    // La vista usa el servicio (no los repositorios): las reglas de quién
+    // ve qué y cómo avanza una asignación viven en AsignacionService.
+    private final AsignacionService asignacionService;
 
     private final Grid<Asignacion> grid =
             new Grid<>(Asignacion.class, false);
 
-    public MisCapacitacionesView(
-            AsignacionRepository asignacionRepository,
-            UsuarioRepository usuarioRepository) {
+    private final Paragraph sinAsignaciones = new Paragraph(
+            "Todavía no tienes capacitaciones asignadas."
+    );
 
-        this.asignacionRepository = asignacionRepository;
-        this.usuarioRepository = usuarioRepository;
+    private final H2 tituloTabla = new H2("Contenido asignado");
+
+    public MisCapacitacionesView(AsignacionService asignacionService) {
+
+        this.asignacionService = asignacionService;
 
         setSizeFull();
         setPadding(true);
@@ -52,44 +55,53 @@ public class MisCapacitacionesView extends VerticalLayout {
 
     private void construirVista() {
 
-        Usuario estudiante = obtenerEstudianteActual();
-
-        if (estudiante == null) {
-            add(
-                    new H1("Mis capacitaciones"),
-                    new Paragraph(
-                            "No fue posible identificar tu cuenta."
-                    )
-            );
-            return;
-        }
-
         add(
                 new H1("Mis capacitaciones"),
                 new Paragraph(
                         "Aquí puedes consultar los cursos y las evaluaciones "
-                                + "asignados a tu cuenta."
+                                + "asignados a tu cuenta. Marca \"Iniciar\" cuando "
+                                + "comiences y \"Marcar como completada\" al terminar: "
+                                + "tu empresa verá tu avance en sus reportes."
                 )
         );
 
         configurarTabla();
 
-        List<Asignacion> asignaciones =
-                asignacionRepository.findByUsuario_Id(estudiante.getId());
+        add(sinAsignaciones, tituloTabla, grid);
 
-        if (asignaciones.isEmpty()) {
-            add(
-                    new Paragraph(
-                            "Todavía no tienes capacitaciones asignadas."
-                    )
-            );
-            return;
-        }
+        actualizarTabla();
+    }
 
-        add(new H2("Contenido asignado"));
+    private void actualizarTabla() {
+
+        List<Asignacion> asignaciones = asignacionService.listarAsignaciones();
+
+        boolean vacia = asignaciones.isEmpty();
+        sinAsignaciones.setVisible(vacia);
+        tituloTabla.setVisible(!vacia);
+        grid.setVisible(!vacia);
 
         grid.setItems(asignaciones);
-        add(grid);
+    }
+
+    private void registrarAvance(Asignacion asignacion, Asignacion.Estado nuevoEstado) {
+
+        try {
+            asignacionService.registrarAvance(asignacion.getId(), nuevoEstado);
+
+            Notification aviso = Notification.show(
+                    nuevoEstado == Asignacion.Estado.completado
+                            ? "¡Capacitación completada!"
+                            : "Capacitación iniciada.");
+            aviso.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+
+        } catch (RuntimeException ex) {
+            Notification aviso = Notification.show(
+                    ex.getMessage(), 5000, Notification.Position.MIDDLE);
+            aviso.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
+
+        actualizarTabla();
     }
 
     private void configurarTabla() {
@@ -124,12 +136,28 @@ public class MisCapacitacionesView extends VerticalLayout {
 
         grid.addComponentColumn(asignacion -> {
 
-            Button boton = new Button(
+            Button ver = new Button(
                     "Ver contenido",
                     event -> abrirContenido(asignacion)
             );
 
-            return boton;
+            HorizontalLayout acciones = new HorizontalLayout(ver);
+
+            if (asignacion.getEstado() == Asignacion.Estado.pendiente) {
+                Button iniciar = new Button("Iniciar", event ->
+                        registrarAvance(asignacion, Asignacion.Estado.progreso));
+                iniciar.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+                acciones.add(iniciar);
+            }
+
+            if (asignacion.getEstado() == Asignacion.Estado.progreso) {
+                Button completar = new Button("Marcar como completada", event ->
+                        registrarAvance(asignacion, Asignacion.Estado.completado));
+                completar.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+                acciones.add(completar);
+            }
+
+            return acciones;
 
         }).setHeader("Acciones").setAutoWidth(true);
 
@@ -203,23 +231,6 @@ public class MisCapacitacionesView extends VerticalLayout {
                 .set("font-weight", "600");
 
         return etiqueta;
-    }
-
-    private Usuario obtenerEstudianteActual() {
-
-        Authentication authentication =
-                SecurityContextHolder.getContext()
-                        .getAuthentication();
-
-        if (authentication == null
-                || !authentication.isAuthenticated()
-                || "anonymousUser".equals(authentication.getPrincipal())) {
-            return null;
-        }
-
-              return usuarioRepository
-                .findByCorreo(authentication.getName())
-                .orElse(null);
     }
 
     private void abrirContenido(Asignacion asignacion) {

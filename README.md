@@ -23,6 +23,38 @@ Posteriormente, la plataforma podrá evolucionar con funcionalidades como cursos
 
 > **Capacita · Concientiza · Protege**
 
+## ☕ Versión Spring Boot (`backend/spring-boot`)
+
+La migración a **Java 21 + Spring Boot 4** (API REST + interfaz Vaadin + MariaDB) reemplaza al backend PHP.
+
+| Módulo | Qué permite |
+|---|---|
+| Cursos, evaluaciones, empresas, usuarios | CRUD con validación, roles y desactivación (sin borrado) |
+| Carga masiva por CSV | Registrar estudiantes desde un archivo; cada uno recibe su contraseña temporal por correo |
+| Asignaciones | Asignar cursos o evaluaciones; aviso por correo; el estudiante registra su avance |
+| Reportes | Avance por curso, por empresa y por estudiante |
+
+**Ejecutar** (XAMPP con MariaDB encendido):
+
+```powershell
+# Importar en phpMyAdmin, en orden:
+#   database/security_awareness_hub.sql
+#   database/migracion_001_roles_empresas_asignaciones.sql
+#   database/crear_usuario_app.sql        (cambia antes la clave)
+cd backend\spring-boot
+copy .env.example .env                  # escribe DB_PASSWORD
+.\mvnw.cmd clean test                   # 37 pruebas
+.\mvnw.cmd spring-boot:run              # http://localhost:8080
+```
+
+**Documentación:**
+[decisiones de la migración](docs/migracion-decisiones.md) ·
+[API REST y pruebas](docs/evidencias/api/README.md) ·
+[Sesión 6](docs/evidencias/sesion-6-persistencia.md) ·
+[Sesión 8](docs/evidencias/sesion-8-correo-csv.md) ·
+[hallazgos y riesgos](docs/calidad/hallazgos-y-riesgos.md) ·
+[Lista de Chequeo 5](docs/lista-chequeo-5.md)
+
 ## 🏗️ Arquitectura del backend (MVC en PHP puro)
 
 El backend fue reorganizado siguiendo el patrón **Modelo-Vista-Controlador**, sin frameworks (sin Laravel), usando PHP + PDO + MySQL. El frontend (HTML/CSS/JS) sigue llamando exactamente a las mismas rutas de siempre (`backend/Api/*.php`), así que no fue necesario tocar el JavaScript.

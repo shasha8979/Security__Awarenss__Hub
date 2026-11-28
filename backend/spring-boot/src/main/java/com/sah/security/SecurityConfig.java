@@ -72,6 +72,11 @@ public class SecurityConfig {
                         // usuario autenticado (admin, admin_empresa, estudiante)
                         .requestMatchers(HttpMethod.GET,
                                 "/api/cursos/**", "/api/evaluaciones/**").authenticated()
+                        // Asignaciones: cada rol ve las suyas y el estudiante
+                        // registra su avance; AsignacionService filtra por rol
+                        .requestMatchers(HttpMethod.GET, "/api/asignaciones").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/asignaciones/*/avance")
+                                .hasRole("EMPLEADO")
                         // Crear, editar o desactivar cursos y evaluaciones, y
                         // todo lo de empresas y usuarios: solo administrador
                         .anyRequest().hasRole("ADMIN")

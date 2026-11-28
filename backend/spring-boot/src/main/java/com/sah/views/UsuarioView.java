@@ -1,8 +1,11 @@
 
 package com.sah.views;
 
+import com.sah.dto.ErrorFilaDTO;
+import com.sah.dto.ResultadoCargaDTO;
 import com.sah.model.Empresa;
 import com.sah.model.Usuario;
+import com.sah.service.CargaUsuariosCsvService;
 import com.sah.service.UsuarioService;
 
 import com.vaadin.flow.component.button.Button;
@@ -18,6 +21,12 @@ import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.component.upload.UploadI18N;
+import com.vaadin.flow.server.streams.UploadHandler;
+
+import java.io.ByteArrayInputStream;
 
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -32,6 +41,9 @@ import java.util.List;
 public class UsuarioView extends VerticalLayout {
 
     private final UsuarioService usuarioService;
+    private final CargaUsuariosCsvService cargaUsuariosCsvService;
+
+    private final Grid<ErrorFilaDTO> erroresCarga = new Grid<>(ErrorFilaDTO.class, false);
 
     private final TextField nombres = new TextField("Nombres");
     private final TextField apellidos = new TextField("Apellidos");
@@ -50,9 +62,12 @@ public class UsuarioView extends VerticalLayout {
 
     private Integer usuarioId = null;
 
-    public UsuarioView(UsuarioService usuarioService) {
+    public UsuarioView(
+            UsuarioService usuarioService,
+            CargaUsuariosCsvService cargaUsuariosCsvService) {
 
         this.usuarioService = usuarioService;
+        this.cargaUsuariosCsvService = cargaUsuariosCsvService;
 
         setSizeFull();
         setPadding(true);
@@ -102,11 +117,120 @@ public class UsuarioView extends VerticalLayout {
                 titulo,
                 descripcion,
                 panelFormulario,
+                crearPanelCargaCsv(),
                 new H2("Usuarios registrados"),
                 grid
         );
 
         actualizarTabla();
+    }
+
+    /**
+     * Carga masiva por CSV (Sesion 8). Usa el mismo servicio que el
+     * endpoint POST /api/usuarios/carga-csv, así ambas vías aplican
+     * exactamente las mismas reglas.
+     */
+    private VerticalLayout crearPanelCargaCsv() {
+
+        Paragraph formato = new Paragraph(
+                "Archivo .csv en UTF-8 (máximo "
+                        + CargaUsuariosCsvService.MAXIMO_FILAS
+                        + " filas, 2 MB) con la cabecera: "
+                        + "nombres;apellidos;correo;nit_empresa;rol. "
+                        + "El rol es opcional (empleado o admin_empresa). "
+                        + "Cada usuario recibe por correo una contraseña temporal."
+        );
+
+        Span resumen = new Span();
+        resumen.setVisible(false);
+
+        erroresCarga.addColumn(ErrorFilaDTO::fila).setHeader("Línea").setAutoWidth(true);
+        erroresCarga.addColumn(ErrorFilaDTO::correo).setHeader("Correo").setAutoWidth(true);
+        erroresCarga.addColumn(ErrorFilaDTO::mensaje).setHeader("Motivo").setFlexGrow(1);
+        erroresCarga.setAllRowsVisible(true);
+        erroresCarga.setVisible(false);
+
+        Upload upload = new Upload(UploadHandler.inMemory((metadata, datos) -> {
+            try {
+                ResultadoCargaDTO resultado = cargaUsuariosCsvService.cargar(
+                        metadata.fileName(), new ByteArrayInputStream(datos));
+
+                resumen.setText("Filas leídas: " + resultado.totalFilas()
+                        + " · Registrados: " + resultado.creados()
+                        + " · Rechazados: " + resultado.rechazados());
+                resumen.setVisible(true);
+
+                erroresCarga.setItems(resultado.errores());
+                erroresCarga.setVisible(!resultado.errores().isEmpty());
+
+                Notification.show(resultado.creados() + " usuarios registrados.");
+                actualizarTabla();
+
+            } catch (IllegalArgumentException ex) {
+                resumen.setVisible(false);
+                erroresCarga.setVisible(false);
+                Notification.show(ex.getMessage(), 5000, Notification.Position.MIDDLE);
+            }
+        }));
+
+        upload.setAcceptedFileExtensions(".csv");
+        upload.setI18n(textosEnEspanol());
+        upload.setMaxFiles(1);
+        upload.setMaxFileSize(2 * 1024 * 1024);
+        upload.addFileRejectedListener(evento ->
+                Notification.show(evento.getErrorMessage(), 5000,
+                        Notification.Position.MIDDLE));
+
+        VerticalLayout panel = new VerticalLayout(
+                new H2("Carga masiva de usuarios (CSV)"),
+                formato,
+                upload,
+                resumen,
+                erroresCarga
+        );
+
+        panel.setPadding(true);
+        panel.setSpacing(true);
+        panel.setWidthFull();
+
+        return panel;
+    }
+
+    /** El componente Upload trae sus textos en inglés; se traducen. */
+    private static UploadI18N textosEnEspanol() {
+
+        UploadI18N i18n = new UploadI18N();
+
+        i18n.setAddFiles(new UploadI18N.AddFiles()
+                .setOne("Seleccionar archivo CSV...")
+                .setMany("Seleccionar archivos..."));
+
+        i18n.setDropFiles(new UploadI18N.DropFiles()
+                .setOne("o arrástralo aquí")
+                .setMany("o arrástralos aquí"));
+
+        i18n.setError(new UploadI18N.Error()
+                .setTooManyFiles("Solo puedes subir un archivo a la vez.")
+                .setFileIsTooBig("El archivo supera el máximo de 2 MB.")
+                .setIncorrectFileType("El archivo debe tener extensión .csv."));
+
+        i18n.setUploading(new UploadI18N.Uploading()
+                .setStatus(new UploadI18N.Uploading.Status()
+                        .setConnecting("Conectando...")
+                        .setStalled("Detenido")
+                        .setProcessing("Procesando archivo...")
+                        .setHeld("En cola"))
+                .setRemainingTime(new UploadI18N.Uploading.RemainingTime()
+                        .setPrefix("tiempo restante: ")
+                        .setUnknown("calculando tiempo restante"))
+                .setError(new UploadI18N.Uploading.Error()
+                        .setServerUnavailable("El servidor no responde.")
+                        .setUnexpectedServerError("Error inesperado del servidor.")
+                        .setForbidden("No tienes permiso para subir archivos.")));
+
+        i18n.setUnits(List.of("B", "kB", "MB", "GB", "TB"));
+
+        return i18n;
     }
 
     private void configurarFormulario() {

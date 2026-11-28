@@ -1,9 +1,11 @@
 package com.sah.controller;
 
 import com.sah.dto.EstadoRequestDTO;
+import com.sah.dto.ResultadoCargaDTO;
 import com.sah.dto.UsuarioRequestDTO;
 import com.sah.dto.UsuarioResponseDTO;
 import com.sah.model.Usuario;
+import com.sah.service.CargaUsuariosCsvService;
 import com.sah.service.UsuarioService;
 
 import jakarta.validation.Valid;
@@ -20,8 +22,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 
@@ -30,7 +35,8 @@ import java.util.List;
  *
  * GET /api/usuarios[?rol=empleado], GET /api/usuarios/{id},
  * POST /api/usuarios, PUT /api/usuarios/{id},
- * PATCH /api/usuarios/{id}/estado.
+ * PATCH /api/usuarios/{id}/estado,
+ * POST /api/usuarios/carga-csv (multipart, campo "archivo": carga masiva).
  * No hay DELETE (405): los usuarios tienen asignaciones; se desactivan.
  */
 @RestController
@@ -38,9 +44,13 @@ import java.util.List;
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
+    private final CargaUsuariosCsvService cargaUsuariosCsvService;
 
-    public UsuarioController(UsuarioService usuarioService) {
+    public UsuarioController(
+            UsuarioService usuarioService,
+            CargaUsuariosCsvService cargaUsuariosCsvService) {
         this.usuarioService = usuarioService;
+        this.cargaUsuariosCsvService = cargaUsuariosCsvService;
     }
 
     @GetMapping
@@ -75,6 +85,20 @@ public class UsuarioController {
 
         return ResponseEntity.created(ubicacion)
                 .body(UsuarioResponseDTO.desde(creado));
+    }
+
+    /**
+     * Carga masiva por CSV. Responde 200 con el resumen: las filas válidas
+     * se registran y las inválidas se devuelven en "errores" con su línea.
+     * 400 si el archivo en sí no es válido (vacío, sin cabecera, no .csv).
+     */
+    @PostMapping(value = "/carga-csv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResultadoCargaDTO cargarCsv(@RequestParam("archivo") MultipartFile archivo)
+            throws IOException {
+
+        try (InputStream contenido = archivo.getInputStream()) {
+            return cargaUsuariosCsvService.cargar(archivo.getOriginalFilename(), contenido);
+        }
     }
 
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)

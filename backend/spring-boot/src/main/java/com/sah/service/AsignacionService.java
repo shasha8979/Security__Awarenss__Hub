@@ -1,6 +1,8 @@
 
 package com.sah.service;
 
+import com.sah.exception.AccesoDenegadoException;
+import com.sah.exception.RecursoNoEncontradoException;
 import com.sah.model.Asignacion;
 import com.sah.model.Usuario;
 import com.sah.model.Curso;
@@ -10,6 +12,9 @@ import com.sah.repository.AsignacionRepository;
 import com.sah.repository.UsuarioRepository;
 import com.sah.repository.CursoRepository;
 import com.sah.repository.EvaluacionRepository;
+import com.sah.notificacion.AsignacionCreadaEvento;
+
+import org.springframework.context.ApplicationEventPublisher;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,17 +31,20 @@ public class AsignacionService {
     private final UsuarioRepository usuarioRepository;
     private final CursoRepository cursoRepository;
     private final EvaluacionRepository evaluacionRepository;
+    private final ApplicationEventPublisher eventos;
 
     public AsignacionService(
             AsignacionRepository asignacionRepository,
             UsuarioRepository usuarioRepository,
             CursoRepository cursoRepository,
-            EvaluacionRepository evaluacionRepository) {
+            EvaluacionRepository evaluacionRepository,
+            ApplicationEventPublisher eventos) {
 
         this.asignacionRepository = asignacionRepository;
         this.usuarioRepository = usuarioRepository;
         this.cursoRepository = cursoRepository;
         this.evaluacionRepository = evaluacionRepository;
+        this.eventos = eventos;
     }
 
     // CONSULTAR ASIGNACIONES SEGUN EL ROL
@@ -247,6 +255,69 @@ public class AsignacionService {
             asignacion.setEvaluacion(evaluacion);
             asignacion.setCurso(null);
         }
+
+        Asignacion guardada = asignacionRepository.save(asignacion);
+
+        // Aviso por correo al estudiante (se envia despues del commit)
+        eventos.publishEvent(new AsignacionCreadaEvento(
+                empleado.getCorreo(),
+                empleado.getNombres(),
+                tipo == Asignacion.Tipo.curso ? "el curso" : "la evaluación",
+                tipo == Asignacion.Tipo.curso
+                        ? guardada.getCurso().getTitulo()
+                        : guardada.getEvaluacion().getTitulo()
+        ));
+
+        return guardada;
+    }
+
+    // REGISTRAR AVANCE DEL ESTUDIANTE
+
+    /**
+     * El estudiante registra su avance en una asignación propia.
+     *
+     * Reglas:
+     * - Solo el rol empleado (estudiante) registra avance.
+     * - Solo sobre sus asignaciones; las de otros responden "no existe"
+     *   para no revelar qué ids hay.
+     * - El estado avanza de uno en uno: pendiente -> progreso -> completado.
+     *   No se puede retroceder ni modificar una capacitación completada.
+     */
+    @Transactional
+    public Asignacion registrarAvance(Integer asignacionId, Asignacion.Estado nuevoEstado) {
+
+        if (nuevoEstado == null) {
+            throw new IllegalArgumentException("Debes indicar el nuevo estado.");
+        }
+
+        Usuario actual = obtenerUsuarioActual();
+
+        if (!"empleado".equalsIgnoreCase(actual.getRol())) {
+            throw new AccesoDenegadoException(
+                    "Solo los estudiantes registran su avance.");
+        }
+
+        Asignacion asignacion = asignacionRepository.findById(asignacionId)
+                .filter(a -> a.getUsuario().getId().equals(actual.getId()))
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No tienes una asignación con id " + asignacionId + "."));
+
+        Asignacion.Estado estadoActual = asignacion.getEstado();
+
+        if (estadoActual == Asignacion.Estado.completado) {
+            throw new IllegalArgumentException("Esta capacitación ya está completada.");
+        }
+
+        if (nuevoEstado.ordinal() <= estadoActual.ordinal()) {
+            throw new IllegalArgumentException("No puedes volver a un estado anterior.");
+        }
+
+        if (nuevoEstado.ordinal() > estadoActual.ordinal() + 1) {
+            throw new IllegalArgumentException(
+                    "Primero debes iniciar la capacitación.");
+        }
+
+        asignacion.setEstado(nuevoEstado);
 
         return asignacionRepository.save(asignacion);
     }

@@ -1,7 +1,7 @@
 # API REST — Security Awareness Hub
 
-Evidencia de las guías 4 (API REST y códigos HTTP), 5 (capas) y 7 (validación,
-manejo de errores y seguridad).
+Evidencia de las guías 4 (API REST y códigos HTTP), 5 (capas), 7 (validación,
+manejo de errores y seguridad) y 8 (carga masiva por CSV y correos).
 
 ## Endpoints
 
@@ -13,6 +13,16 @@ Base: `http://localhost:8080/api` — autenticación **HTTP Basic** (usuario = c
 | `/evaluaciones` (`?cursoId=`) | autenticado | autenticado | admin | admin | admin | 405 |
 | `/empresas` | admin | admin | admin | admin | admin | 405 |
 | `/usuarios` (`?rol=`) | admin | admin | admin | admin | admin | 405 |
+
+Rutas adicionales:
+
+| Ruta | Método | Quién | Respuesta |
+|---|---|---|---|
+| `/usuarios/carga-csv` | POST (multipart, campo `archivo`) | admin | 200 con resumen (`totalFilas`, `creados`, `rechazados`, `errores` por línea); 400 si el archivo no es válido; 413 si pasa de 2 MB; 415 si no es multipart |
+| `/asignaciones` | GET | autenticado | 200: todas (admin), las de su empresa (admin_empresa) o las propias (estudiante) |
+| `/asignaciones/{id}/avance` | PATCH `{"estado":"progreso"}` | estudiante | 200; 400 si salta o retrocede de estado; 403 otro rol; 404 asignación ajena o inexistente |
+
+Detalle de la Sesión 8: [`../sesion-8-correo-csv.md`](../sesion-8-correo-csv.md).
 
 **DELETE responde 405 a propósito:** cursos, evaluaciones, empresas y usuarios
 tienen registros relacionados (asignaciones, usuarios, preguntas) protegidos por
@@ -30,6 +40,7 @@ claves foráneas `ON DELETE RESTRICT`. En lugar de borrarse se desactivan con
 | 403 | El rol no tiene permiso (por ejemplo, un estudiante intenta ver usuarios) |
 | 404 | El recurso o la ruta no existen |
 | 405 | Método no permitido (DELETE) |
+| 413 | Archivo CSV mayor de 2 MB |
 | 409 | Dato único repetido (título de curso, NIT, correo, evaluación en el mismo curso) |
 | 415 | `Content-Type` distinto de `application/json` |
 | 500 | Error interno (se registra en el log; al cliente no se le muestran detalles) |
@@ -67,6 +78,7 @@ Con la aplicación en marcha, desde la raíz del repositorio en **Git Bash**:
 ```bash
 bash docs/evidencias/api/probar-api-cursos.sh 'CONTRASEÑA_ADMIN'   # 21 pruebas
 bash docs/evidencias/api/probar-api-sah.sh    'CONTRASEÑA_ADMIN'   # 46 pruebas (43 al repetir)
+bash docs/evidencias/api/probar-api-csv.sh    'CONTRASEÑA_ADMIN'   # 8 pruebas (carga CSV)
 ```
 
 Los scripts crean datos de prueba la primera vez y los reutilizan después
@@ -74,10 +86,16 @@ Los scripts crean datos de prueba la primera vez y los reutilizan después
 `estudiante.api@sah-pruebas.com` queda **inactivo** al terminar, por lo que no
 puede iniciar sesión.
 
-Alternativa gráfica: importar `SAH-API.postman_collection.json` (42 peticiones
-en 4 carpetas: Cursos, Empresas, Usuarios y permisos, Evaluaciones) en Postman o
+Alternativa gráfica: importar `SAH-API.postman_collection.json` (55 peticiones
+en 6 carpetas: Cursos, Empresas, Usuarios y permisos, Evaluaciones, Carga masiva CSV,
+Asignaciones y avance) en Postman o
 en la extensión **Thunder Client** de VS Code. El nombre de cada petición indica
 el código HTTP esperado.
+
+## Pruebas automáticas (JUnit)
+
+`cd backend/spring-boot` y luego `.\mvnw.cmd clean test`: **37 pruebas, 0 fallos** (2026-11-27).
+Incluye pruebas de integración con MockMvc contra MariaDB y GreenMail (ver la Sesión 8).
 
 ## Resultado de la última ejecución (2026-11-26)
 

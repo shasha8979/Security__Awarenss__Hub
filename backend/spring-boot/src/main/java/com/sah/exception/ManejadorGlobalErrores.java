@@ -16,7 +16,11 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
@@ -85,6 +89,14 @@ public class ManejadorGlobalErrores {
                 "La ruta solicitada no existe.", peticion, Map.of());
     }
 
+    /** 403: regla de permisos del servicio. */
+    @ExceptionHandler(AccesoDenegadoException.class)
+    public ResponseEntity<ErrorRespuestaDTO> accesoDenegado(
+            AccesoDenegadoException ex, HttpServletRequest peticion) {
+
+        return responder(HttpStatus.FORBIDDEN, ex.getMessage(), peticion, Map.of());
+    }
+
     /** 409: dato unico repetido (regla del servicio). */
     @ExceptionHandler(DatoDuplicadoException.class)
     public ResponseEntity<ErrorRespuestaDTO> duplicado(
@@ -124,13 +136,50 @@ public class ManejadorGlobalErrores {
                 peticion, Map.of());
     }
 
-    /** 415: Content-Type distinto de application/json. */
+    /** 415: Content-Type distinto del que acepta la ruta. */
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     public ResponseEntity<ErrorRespuestaDTO> formatoNoSoportado(
             HttpMediaTypeNotSupportedException ex, HttpServletRequest peticion) {
 
+        String esperado = ex.getSupportedMediaTypes().isEmpty()
+                ? "application/json"
+                : ex.getSupportedMediaTypes().get(0).toString();
+
         return responder(HttpStatus.UNSUPPORTED_MEDIA_TYPE,
-                "El contenido debe enviarse como application/json.",
+                "El contenido debe enviarse como " + esperado + ".",
+                peticion, Map.of());
+    }
+
+    /** 400: falta el archivo o un parametro obligatorio (carga CSV). */
+    @ExceptionHandler({
+            MissingServletRequestPartException.class,
+            MissingServletRequestParameterException.class
+    })
+    public ResponseEntity<ErrorRespuestaDTO> parteFaltante(
+            Exception ex, HttpServletRequest peticion) {
+
+        return responder(HttpStatus.BAD_REQUEST,
+                "Debes adjuntar el archivo en el campo 'archivo'.",
+                peticion, Map.of());
+    }
+
+    /** 413: el archivo supera el tamaño máximo (spring.servlet.multipart). */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorRespuestaDTO> archivoMuyGrande(
+            MaxUploadSizeExceededException ex, HttpServletRequest peticion) {
+
+        return responder(HttpStatus.CONTENT_TOO_LARGE,
+                "El archivo supera el tamaño máximo permitido (2 MB).",
+                peticion, Map.of());
+    }
+
+    /** 400: la petición no es multipart o está mal formada. */
+    @ExceptionHandler(MultipartException.class)
+    public ResponseEntity<ErrorRespuestaDTO> multipartInvalido(
+            MultipartException ex, HttpServletRequest peticion) {
+
+        return responder(HttpStatus.BAD_REQUEST,
+                "La petición debe enviarse como multipart/form-data con el campo 'archivo'.",
                 peticion, Map.of());
     }
 

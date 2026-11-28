@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AsignacionRepository
@@ -18,6 +19,12 @@ public interface AsignacionRepository
             "usuario", "curso", "evaluacion"
     })
     List<Asignacion> findAll();
+
+    @Override
+    @EntityGraph(attributePaths = {
+            "usuario", "curso", "evaluacion"
+    })
+    Optional<Asignacion> findById(Integer id);
 
     @EntityGraph(attributePaths = {
             "usuario", "curso", "evaluacion"

@@ -42,6 +42,12 @@ public class UsuarioService {
         return usuarioRepository.findAll();
     }
 
+    /** true si hay al menos un administrador del sistema que puede iniciar sesión. */
+    @Transactional(readOnly = true)
+    public boolean existeAdministradorActivo() {
+        return usuarioRepository.existsByRolAndEstado("admin", "activo");
+    }
+
     @Transactional(readOnly = true)
     public Usuario buscarPorId(Integer id) {
         return usuarioRepository.findById(id)
