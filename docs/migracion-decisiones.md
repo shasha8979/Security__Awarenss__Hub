@@ -27,7 +27,8 @@
 
 - Preguntas y opciones de las evaluaciones: las tablas `preguntas` y `opciones` existen, pero no tienen entidad ni pantalla. Para guardar la calificación del estudiante hay que añadir una columna, así que antes se propondrá la migración.
 - Exportación de reportes (PDF/Excel).
-- Las páginas Thymeleaf reproducen el panel PHP con su mismo CSS. La landing page (`frontend/Landing_Page`) y el registro público siguen solo en PHP.
+- El contenido de la página del curso (`course.html`) es estático: el avance real del estudiante está en "Mis capacitaciones".
+- Recuperación de contraseña: no hay (la del PHP era insegura, H17). Hoy el administrador cambia la clave desde Usuarios.
 
 ## 2. Hallazgos del código PHP original
 
@@ -62,6 +63,7 @@ Análisis del ejercicio complementario "Gestor de Tareas" (Thymeleaf + login): [
 | D18 | 2026-11-28 | **Interfaz con Thymeleaf** siguiendo el orden del ejercicio Gestor de Tareas (`config/`, `controller/` con `@Controller` y `LoginController`, `templates/`). Se retira Vaadin. Las plantillas usan el HTML y **los mismos archivos CSS de `frontend/`**: Maven los copia a `static/` al compilar | D1 (Vaadin) | El equipo pidió que las pantallas en Java usen el CSS del frontend; Vaadin genera su propio HTML y no puede. Thymeleaf es lo que enseña el ejercicio |
 | D19 | 2026-11-28 | Los formularios web enlazan el **DTO** con `@Valid` (no la entidad) y llaman al servicio | Ejercicio: entidad con `@ModelAttribute` y repositorio en el controlador | Reglas de las sesiones 5 y 7; las mismas validaciones que la API |
 | D20 | 2026-11-28 | Exportación de reportes a CSV (`/reportes/exportar`) | `export_reporte.php` | Recupera una función del PHP que faltaba en Java |
+| D21 | 2026-11-28 | **Se retira el código PHP** (backend MVC y páginas PHP, 49 archivos). `frontend/` queda solo con CSS, imágenes y la landing; Maven copia `Landing_Page/` a la app (`/landing/`). `course.php` pasa a `course.html` protegido por Spring Security. No se migran el registro público ni la recuperación de contraseña | — | Spring Boot cubre todas sus funciones. El registro público no aplica (los usuarios los crea el admin o el CSV) y la recuperación del PHP era insegura (H17)
 
 ## 4. Cómo ejecutar el proyecto
 

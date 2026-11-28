@@ -10,8 +10,6 @@
 **/target/
 **/build/
 
-# Archivos generados por Vaadin
-**/src/main/frontend/generated/
 
 # Archivos del sistema
 .DS_Store

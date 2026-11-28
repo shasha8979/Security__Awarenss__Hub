@@ -26,14 +26,16 @@ src/main/java/com/sah/
 │   ├── SecurityConfig.java          <- 2 cadenas: API (Basic) y páginas (formLogin)
 │   └── DatosIniciales.java          <- equivale a DataInitializer
 ├── controller/
-│   ├── LoginController.java         <- /login y redirección inicial según el rol
-│   ├── PanelWebController.java      <- páginas (@Controller) ...
-│   ├── UsuarioWebController.java
-│   ├── EmpresaWebController.java, CursoWebController.java, EvaluacionWebController.java
-│   ├── AsignacionWebController.java, ReporteWebController.java
-│   ├── SeguimientoWebController.java, MisCapacitacionesWebController.java
-│   ├── DatosComunesWebAdvice.java   <- usuario en sesión para el menú
-│   └── CursoController.java ...     <- API REST (@RestController, /api/**)
+│   ├── api/                         <- API REST (@RestController, /api/**, Postman)
+│   │   └── CursoController, EmpresaController, EvaluacionController,
+│   │       UsuarioController, AsignacionController
+│   └── web/                         <- páginas (@Controller + Thymeleaf)
+│       ├── LoginController.java     <- /login y redirección inicial según el rol
+│       ├── PanelWebController, UsuarioWebController, EmpresaWebController,
+│       │   CursoWebController, EvaluacionWebController, AsignacionWebController,
+│       │   ReporteWebController, SeguimientoWebController, MisCapacitacionesWebController
+│       ├── DatosComunesWebAdvice.java <- usuario en sesión para el menú
+│       └── ErroresFormulario.java   <- errores de @Valid junto a cada campo
 ├── model/        repository/        service/
 ├── dto/          exception/         notificacion/
 src/main/resources/

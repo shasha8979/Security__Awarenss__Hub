@@ -11,8 +11,8 @@
 | Carga masiva | `service/CargaUsuariosCsvService.java` | Lee el CSV, valida cada fila, guarda en bloques de 100 y publica un evento por usuario creado |
 | Fila del CSV | `dto/FilaUsuarioCsvDTO.java` | Bean Validation (`@NotBlank`, `@Email`, `@Size`), las mismas reglas que `UsuarioRequestDTO` |
 | Resultado | `dto/ResultadoCargaDTO.java`, `dto/ErrorFilaDTO.java` | Resumen: filas leídas, creadas, rechazadas y motivo por línea |
-| Endpoint | `controller/UsuarioController.java` | `POST /api/usuarios/carga-csv` (multipart, campo `archivo`) — solo ADMIN |
-| Interfaz | `controller/UsuarioWebController.java`, `templates/usuarios/lista.html` | Formulario de carga (multipart con token CSRF) en la página de usuarios. Hasta el 2026-11-27 era una vista Vaadin |
+| Endpoint | `controller/api/UsuarioController.java` | `POST /api/usuarios/carga-csv` (multipart, campo `archivo`) — solo ADMIN |
+| Interfaz | `controller/web/UsuarioWebController.java`, `templates/usuarios/lista.html` | Formulario de carga (multipart con token CSRF) en la página de usuarios. Hasta el 2026-11-27 era una vista Vaadin |
 | Correo | `notificacion/CorreoService.java` | Envía con `JavaMailSender`; configuración SMTP por variables de entorno |
 | Eventos | `notificacion/UsuarioRegistradoEvento.java`, `AsignacionCreadaEvento.java` | Datos del correo (la clave temporal no aparece en `toString()`) |
 | Oyente | `notificacion/NotificacionCorreoListener.java` | `@TransactionalEventListener(AFTER_COMMIT)` + `@Async` |

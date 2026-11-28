@@ -55,40 +55,30 @@ copy .env.example .env                  # escribe DB_PASSWORD
 [hallazgos y riesgos](docs/calidad/hallazgos-y-riesgos.md) ·
 [Lista de Chequeo 5](docs/lista-chequeo-5.md)
 
-## 🏗️ Arquitectura del backend (MVC en PHP puro)
-
-El backend fue reorganizado siguiendo el patrón **Modelo-Vista-Controlador**, sin frameworks (sin Laravel), usando PHP + PDO + MySQL. El frontend (HTML/CSS/JS) sigue llamando exactamente a las mismas rutas de siempre (`backend/Api/*.php`), así que no fue necesario tocar el JavaScript.
+## 🗂️ Estructura del repositorio
 
 ```
-backend/
-├── Config/
-│   └── database.php        # Conexión PDO a MySQL (patrón Singleton)
-├── Core/                    # Clases de apoyo compartidas
-│   ├── Request.php          # Lee método HTTP, JSON del body y $_GET
-│   ├── Response.php         # "Vista": arma y envía la respuesta JSON
-│   └── Auth.php             # Maneja sesión, login/logout y permisos
-├── Models/                  # "M": una clase por tabla, solo SQL
-│   ├── UsuarioModel.php
-│   ├── EmpresaModel.php
-│   ├── CursoModel.php
-│   └── EvaluacionModel.php
-├── Controllers/              # "C": validaciones y reglas de negocio
-│   ├── AuthController.php    # login, register, logout
-│   ├── UsuarioController.php
-│   ├── EmpresaController.php
-│   ├── CursoController.php
-│   └── EvaluacionController.php
-├── bootstrap.php             # Arranca sesión + carga Core/Modelos/Controladores
-└── Api/                      # Front controllers: el único punto de entrada público
-    ├── login.php, register.php, logout.php
-    ├── usuarios.php, empresas.php, courses.php, evaluaciones.php
-    └── test.php, crear_admin.php
+backend/spring-boot/        Aplicación Java (Spring Boot)
+├── src/main/java/com/sah/
+│   ├── config/             SecurityConfig, DatosIniciales
+│   ├── controller/api/     API REST (/api/**, HTTP Basic, Postman)
+│   ├── controller/web/     Páginas (@Controller + Thymeleaf)
+│   ├── service/            Reglas de negocio
+│   ├── repository/  model/  dto/  exception/  notificacion/
+├── src/main/resources/templates/   Vistas HTML (Thymeleaf)
+└── src/test/               49 pruebas automáticas
+frontend/                   Diseño: CSS, imágenes y landing (los usa la app Java)
+├── Interface_Administrador/css/    Estilos del panel
+├── authentication/css, assets/     Estilos e imágenes del login
+└── Landing_Page/                   Página pública y contenido del curso
+database/                   Scripts SQL y herramienta restablecer_clave.php
+docs/                       Decisiones, evidencias, calidad y lista de chequeo
 ```
 
-**¿Cómo fluye una petición?**
-`frontend (fetch)` → `Api/usuarios.php` (front controller, 3 líneas) → `UsuarioController` (valida y decide) → `UsuarioModel` (consulta MySQL con PDO) → `Response::json()` (responde al frontend).
+Los CSS de `frontend/` son la **única fuente de estilos**: Maven los copia a la aplicación al compilar.
 
-**¿Dónde está la "Vista" si no hay HTML generado por PHP?**
-Como el frontend es un SPA en JavaScript que solo consume JSON, la Vista del backend es el formato de la respuesta (`Core/Response.php`). Las vistas visuales (HTML/CSS) viven en `frontend/`, totalmente desacopladas del backend — esa separación también es parte de MVC.
+## 🕘 Versión PHP (retirada)
 
-**Corrección aplicada durante la migración:** en `courses.php` el estado del curso se guardaba con `(int)` sobre `"activo"/"inactivo"`, lo que siempre producía `0` y corrompía la columna `ENUM`. En `CursoController`/`CursoModel` ahora se maneja como texto (`'activo'`/`'inactivo'`), igual que en el resto de los módulos y que en la base de datos.
+La primera versión del backend era MVC en PHP puro (`backend/Api`, `Controllers`, `Models`, `Core`) con páginas PHP en `frontend/`.
+Se retiró el 2026-11-28 porque Spring Boot ya cubre todas sus funciones (ver D21 en [docs/migracion-decisiones.md](docs/migracion-decisiones.md)).
+Su código sigue disponible en el historial de Git (commit `50104ee` y anteriores).

@@ -109,6 +109,7 @@
               frontend/Interface_Administrador/css -> /admin/css/
               frontend/authentication/css          -> /auth/css/
               frontend/authentication/assets       -> /auth/assets/
+              frontend/Landing_Page                -> /landing/ (página pública y curso)
         -->
         <resources>
             <resource>
@@ -125,6 +126,14 @@
             <resource>
                 <directory>${frontend.dir}/authentication/assets</directory>
                 <targetPath>static/auth/assets</targetPath>
+            </resource>
+            <resource>
+                <directory>${frontend.dir}/Landing_Page</directory>
+                <targetPath>static/landing</targetPath>
+                <excludes>
+                    <exclude>text.txt</exclude>
+                    <exclude>Page_Readme.png</exclude>
+                </excludes>
             </resource>
         </resources>
 

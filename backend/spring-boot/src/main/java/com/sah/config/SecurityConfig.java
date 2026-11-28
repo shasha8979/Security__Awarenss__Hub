@@ -116,9 +116,11 @@ public class SecurityConfig {
         http
                 .authenticationProvider(authenticationProvider)
                 .authorizeHttpRequests(reglas -> reglas
-                        // Login y estilos (CSS del frontend): públicos
-                        .requestMatchers("/login", "/admin/css/**", "/auth/**",
-                                "/error").permitAll()
+                        // El contenido del curso exige sesión (antes lo hacía course.php)
+                        .requestMatchers("/landing/Interface_User/**").authenticated()
+                        // Landing, login y estilos (CSS del frontend): públicos
+                        .requestMatchers("/", "/login", "/landing/**", "/admin/css/**",
+                                "/auth/**", "/error").permitAll()
                         // Administración del sistema: solo administrador
                         .requestMatchers("/panel/**", "/usuarios/**", "/empresas/**", "/cursos/**",
                                 "/evaluaciones/**", "/reportes/**").hasRole("ADMIN")

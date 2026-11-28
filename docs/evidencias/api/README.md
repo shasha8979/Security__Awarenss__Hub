@@ -61,7 +61,7 @@ Todas las respuestas de error usan el mismo formato:
 ## Arquitectura
 
 ```
-Controller (com.sah.controller)  → HTTP ⇄ DTO, @Valid, códigos de respuesta
+Controller (com.sah.controller.api) → HTTP ⇄ DTO, @Valid, códigos de respuesta
 Service    (com.sah.service)     → reglas de negocio (las mismas que usan las páginas Thymeleaf)
 Repository (com.sah.repository)  → Spring Data JPA → MariaDB
 DTO        (com.sah.dto)         → entrada validada / salida sin datos sensibles
