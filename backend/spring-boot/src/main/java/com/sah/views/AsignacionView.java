@@ -115,7 +115,7 @@ public class AsignacionView extends VerticalLayout {
         );
 
         descripcion.getStyle()
-                .set("color", "#64748B")
+                .set("color", "var(--lumo-secondary-text-color)")
                 .set("font-size", "14px");
 
         VerticalLayout informacion =
@@ -130,8 +130,8 @@ public class AsignacionView extends VerticalLayout {
         );
 
         actualizar.getStyle()
-                .set("background", "#1769AA")
-                .set("color", "#FFFFFF");
+                .set("background", "var(--lumo-primary-color)")
+                .set("color", "var(--lumo-primary-contrast-color)");
 
         HorizontalLayout encabezado =
                 new HorizontalLayout(informacion, actualizar);
@@ -151,7 +151,7 @@ public class AsignacionView extends VerticalLayout {
 
         tituloFormulario.getStyle()
                 .set("font-size", "20px")
-                .set("color", "#1769AA");
+                .set("color", "var(--lumo-primary-text-color)");
 
         cargarEmpleados();
 
@@ -217,8 +217,8 @@ public class AsignacionView extends VerticalLayout {
         );
 
         guardar.getStyle()
-                .set("background", "#1769AA")
-                .set("color", "#FFFFFF");
+                .set("background", "var(--lumo-primary-color)")
+                .set("color", "var(--lumo-primary-contrast-color)");
 
         HorizontalLayout campos = new HorizontalLayout(
                 empleado,
@@ -243,8 +243,8 @@ public class AsignacionView extends VerticalLayout {
         );
 
         formulario.getStyle()
-                .set("background", "#FFFFFF")
-                .set("border", "1px solid #E2E8F0")
+                .set("background", "var(--sah-superficie)")
+                .set("border", "1px solid var(--sah-borde)")
                 .set("border-radius", "10px")
                 .set("padding", "20px");
 

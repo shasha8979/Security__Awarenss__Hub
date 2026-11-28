@@ -56,7 +56,7 @@ public class MainLayout extends AppLayout {
         logo.getStyle()
                 .set("font-size", "22px")
                 .set("font-weight", "800")
-                .set("color", "#1769AA")
+                .set("color", "var(--lumo-primary-text-color)")
                 .set("margin", "0");
 
         Span nombre = new Span("SECURITY AWARENESS HUB");
@@ -64,7 +64,7 @@ public class MainLayout extends AppLayout {
                 .set("font-size", "13px")
                 .set("font-weight", "600")
                 .set("letter-spacing", "1px")
-                .set("color", "#475569");
+                .set("color", "var(--lumo-secondary-text-color)");
 
         VerticalLayout identidad = new VerticalLayout(logo, nombre);
         identidad.setPadding(false);
@@ -74,7 +74,7 @@ public class MainLayout extends AppLayout {
         usuario.getStyle()
                 .set("font-size", "13px")
                 .set("font-weight", "600")
-                .set("color", "#334155");
+                .set("color", "var(--lumo-body-text-color)");
 
         Button cerrarSesion = new Button(
                 "Cerrar sesión",
@@ -92,8 +92,8 @@ public class MainLayout extends AppLayout {
 
         encabezado.getStyle()
                 .set("padding", "10px 20px")
-                .set("background", "#FFFFFF")
-                .set("border-bottom", "1px solid #E2E8F0")
+                .set("background", "var(--sah-superficie)")
+                .set("border-bottom", "1px solid var(--sah-borde)")
                 .set("flex-wrap", "wrap");
 
         addToNavbar(encabezado);
@@ -104,7 +104,7 @@ public class MainLayout extends AppLayout {
         H2 titulo = new H2("Menú principal");
         titulo.getStyle()
                 .set("font-size", "15px")
-                .set("color", "#64748B")
+                .set("color", "var(--lumo-secondary-text-color)")
                 .set("margin", "10px 0 20px 10px");
 
         VerticalLayout menu = new VerticalLayout();
@@ -142,7 +142,7 @@ public class MainLayout extends AppLayout {
             );
         }
 
-        menu.getStyle().set("background", "#FFFFFF");
+        menu.getStyle().set("background", "var(--sah-superficie)");
 
         addToDrawer(menu);
     }
@@ -158,13 +158,13 @@ public class MainLayout extends AppLayout {
         HorizontalLayout contenido = new HorizontalLayout();
 
         Span iconoVisual = new Span(icono.create());
-        iconoVisual.getStyle().set("color", "#2875C7");
+        iconoVisual.getStyle().set("color", "var(--lumo-primary-text-color)");
 
         Span etiqueta = new Span(texto);
         etiqueta.getStyle()
                 .set("font-size", "14px")
                 .set("font-weight", "500")
-                .set("color", "#334155");
+                .set("color", "var(--lumo-body-text-color)");
 
         contenido.add(iconoVisual, etiqueta);
         contenido.setAlignItems(HorizontalLayout.Alignment.CENTER);

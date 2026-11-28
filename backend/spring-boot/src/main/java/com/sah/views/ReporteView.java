@@ -105,7 +105,7 @@ public class ReporteView extends VerticalLayout {
 
         fechaGeneracion.getStyle()
                 .set("font-size", "12px")
-                .set("color", "#64748B");
+                .set("color", "var(--lumo-secondary-text-color)");
 
         VerticalLayout encabezado = new VerticalLayout(fila, descripcion, fechaGeneracion);
         encabezado.setPadding(false);
@@ -172,18 +172,18 @@ public class ReporteView extends VerticalLayout {
         etiqueta.getStyle()
                 .set("font-size", "13px")
                 .set("font-weight", "600")
-                .set("color", "#475569");
+                .set("color", "var(--lumo-secondary-text-color)");
 
         Span numero = new Span(valor);
         numero.getStyle()
                 .set("font-size", "28px")
                 .set("font-weight", "800")
-                .set("color", "#1769AA");
+                .set("color", "var(--lumo-primary-text-color)");
 
         Span descripcion = new Span(detalle);
         descripcion.getStyle()
                 .set("font-size", "12px")
-                .set("color", "#64748B");
+                .set("color", "var(--lumo-secondary-text-color)");
 
         Div tarjeta = new Div(etiqueta, numero, descripcion);
         tarjeta.getStyle()
@@ -191,8 +191,8 @@ public class ReporteView extends VerticalLayout {
                 .set("flex-direction", "column")
                 .set("gap", "4px")
                 .set("padding", "16px")
-                .set("background", "#FFFFFF")
-                .set("border", "1px solid #E2E8F0")
+                .set("background", "var(--sah-superficie)")
+                .set("border", "1px solid var(--sah-borde)")
                 .set("border-radius", "12px");
 
         return tarjeta;
@@ -203,12 +203,12 @@ public class ReporteView extends VerticalLayout {
         H3 encabezado = new H3(titulo);
         encabezado.getStyle()
                 .set("margin", "16px 0 0 0")
-                .set("color", "#1769AA");
+                .set("color", "var(--lumo-primary-text-color)");
 
         Paragraph texto = new Paragraph(descripcion);
         texto.getStyle()
                 .set("margin", "0")
-                .set("color", "#64748B");
+                .set("color", "var(--lumo-secondary-text-color)");
 
         grid.setAllRowsVisible(true);
         grid.setWidthFull();
@@ -295,7 +295,7 @@ public class ReporteView extends VerticalLayout {
             Span sinDatos = new Span("Sin asignaciones");
             sinDatos.getStyle()
                     .set("font-size", "12px")
-                    .set("color", "#94A3B8");
+                    .set("color", "var(--lumo-tertiary-text-color)");
             return sinDatos;
         }
 
@@ -321,10 +321,10 @@ public class ReporteView extends VerticalLayout {
 
         aviso.getStyle()
                 .set("padding", "12px 16px")
-                .set("background", "#FFF7ED")
-                .set("border", "1px solid #FED7AA")
+                .set("background", "var(--sah-aviso-fondo)")
+                .set("border", "1px solid var(--sah-aviso-borde)")
                 .set("border-radius", "8px")
-                .set("color", "#9A3412")
+                .set("color", "var(--sah-aviso-texto)")
                 .set("font-size", "13px");
 
         return aviso;

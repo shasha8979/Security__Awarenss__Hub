@@ -236,7 +236,7 @@ public class MainView extends VerticalLayout {
                 .set("border-radius", "12px")
                 .set("border", "1px solid var(--lumo-contrast-10pct)")
                 .set("background", "var(--lumo-base-color)")
-                .set("box-shadow", "0 2px 8px rgba(0,0,0,0.06)");
+                .set("box-shadow", "0 2px 8px rgba(0,0,0,0.35)");
 
         H2 encabezado = new H2(titulo);
         encabezado.getStyle().set("font-size", "18px");
@@ -411,7 +411,7 @@ public class MainView extends VerticalLayout {
                 .set("border-radius", "12px")
                 .set("border", "1px solid var(--lumo-contrast-10pct)")
                 .set("background", "var(--lumo-base-color)")
-                .set("box-shadow", "0 2px 8px rgba(0,0,0,0.06)");
+                .set("box-shadow", "0 2px 8px rgba(0,0,0,0.35)");
 
         Span nombre = new Span(titulo);
         nombre.getStyle()

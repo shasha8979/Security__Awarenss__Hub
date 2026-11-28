@@ -110,6 +110,11 @@ public class SecurityConfig {
 
         http.authenticationProvider(authenticationProvider);
 
+        // Hoja de estilos del tema SAH: la necesita también la página de
+        // login, antes de iniciar sesión (solo CSS, sin datos)
+        http.authorizeHttpRequests(reglas -> reglas
+                .requestMatchers("/styles/**").permitAll());
+
         http.with(VaadinSecurityConfigurer.vaadin(), configurer ->
                 configurer.loginView(LoginView.class)
         );

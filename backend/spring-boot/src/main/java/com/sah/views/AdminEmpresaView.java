@@ -85,7 +85,7 @@ public class AdminEmpresaView extends VerticalLayout {
                 "Avance de capacitación de los estudiantes de "
                         + empresa.getNombre() + "."
         );
-        descripcion.getStyle().set("margin", "0").set("color", "#64748B");
+        descripcion.getStyle().set("margin", "0").set("color", "var(--lumo-secondary-text-color)");
 
         estudiantes = reporteService.generarAvancePorEstudiante(empresa.getId());
 
@@ -138,7 +138,7 @@ public class AdminEmpresaView extends VerticalLayout {
     private Component crearSeccionTabla() {
 
         H3 subtitulo = new H3("Estudiantes");
-        subtitulo.getStyle().set("margin", "16px 0 0 0").set("color", "#1769AA");
+        subtitulo.getStyle().set("margin", "16px 0 0 0").set("color", "var(--lumo-primary-text-color)");
 
         buscador.setPlaceholder("Buscar por nombre o correo");
         buscador.setClearButtonVisible(true);
@@ -229,7 +229,7 @@ public class AdminEmpresaView extends VerticalLayout {
 
         if (fila.asignaciones() == 0) {
             Span sinDatos = new Span("Sin asignaciones");
-            sinDatos.getStyle().set("font-size", "12px").set("color", "#94A3B8");
+            sinDatos.getStyle().set("font-size", "12px").set("color", "var(--lumo-tertiary-text-color)");
             return sinDatos;
         }
 
@@ -250,16 +250,16 @@ public class AdminEmpresaView extends VerticalLayout {
         etiqueta.getStyle()
                 .set("font-size", "13px")
                 .set("font-weight", "600")
-                .set("color", "#475569");
+                .set("color", "var(--lumo-secondary-text-color)");
 
         Span numero = new Span(valor);
         numero.getStyle()
                 .set("font-size", "28px")
                 .set("font-weight", "800")
-                .set("color", "#1769AA");
+                .set("color", "var(--lumo-primary-text-color)");
 
         Span descripcion = new Span(detalle);
-        descripcion.getStyle().set("font-size", "12px").set("color", "#64748B");
+        descripcion.getStyle().set("font-size", "12px").set("color", "var(--lumo-secondary-text-color)");
 
         Div tarjeta = new Div(etiqueta, numero, descripcion);
         tarjeta.getStyle()
@@ -267,8 +267,8 @@ public class AdminEmpresaView extends VerticalLayout {
                 .set("flex-direction", "column")
                 .set("gap", "4px")
                 .set("padding", "16px")
-                .set("background", "#FFFFFF")
-                .set("border", "1px solid #E2E8F0")
+                .set("background", "var(--sah-superficie)")
+                .set("border", "1px solid var(--sah-borde)")
                 .set("border-radius", "12px");
 
         return tarjeta;

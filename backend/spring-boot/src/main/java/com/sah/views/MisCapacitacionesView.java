@@ -199,27 +199,27 @@ public class MisCapacitacionesView extends VerticalLayout {
 
         if (estado == null) {
             texto = "Sin estado";
-            color = "gray";
+            color = "var(--lumo-tertiary-text-color)";
         } else {
             switch (estado) {
                 case pendiente:
                     texto = "Pendiente";
-                    color = "orange";
+                    color = "var(--sah-aviso-texto)";
                     break;
 
                 case progreso:
                     texto = "En progreso";
-                    color = "blue";
+                    color = "var(--sah-info)";
                     break;
 
                 case completado:
                     texto = "Completada";
-                    color = "green";
+                    color = "var(--sah-verde)";
                     break;
 
                 default:
                     texto = "Sin estado";
-                    color = "gray";
+                    color = "var(--lumo-tertiary-text-color)";
                     break;
             }
         }
