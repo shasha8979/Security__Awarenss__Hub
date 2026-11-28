@@ -19,6 +19,10 @@ verificación → hallazgo → acción correctiva o preventiva → verificación
 | H10 | 2026-11-27 | Prueba de aceptación: el administrador no podía iniciar sesión | La contraseña guardada para `admin@sah.com` (hash `$2y$` del PHP) no coincidía con la que conocía el equipo. Se descartó un fallo de la app: login correcto e incorrecto probados con un usuario temporal, y Spring acepta hashes `$2y$` | Media | `database/restablecer_clave.php` (solo consola; responde 404 desde el navegador) | El administrador inició sesión con la clave nueva | Cerrado |
 | H11 | 2026-11-27 | Prueba de aceptación A1 | El componente de carga CSV mostraba textos en inglés ("Upload File...", "Drop file here") | Baja | Traducción con `UploadI18N` | Verificado en el navegador: "Seleccionar archivo CSV..." / "o arrástralo aquí" | Cerrado |
 | H12 | 2026-11-27 | Ejecución de `probar-api-csv.sh` | Con una clave de admin errónea, el script mostraba 6 fallas 401 que parecían errores de la API. La causa fue usar una clave distinta (con un carácter de más) de la que se guardó al restablecerla | Baja | El script valida primero la clave (`GET /api/cursos`) y, si no sirve, se detiene con instrucciones | Clave errónea: mensaje claro y salida 1. Clave correcta: 8/8 | Cerrado |
+| H13 | 2026-11-28 | Revisión de capas antes de migrar a Thymeleaf | Además de H4, `AsignacionView`, `MainView`, `AdminEmpresaView` y `EvaluacionView` (Vaadin) usaban repositorios directamente | Media | Las páginas nuevas son `@Controller` que solo llaman servicios; se agregaron a los servicios los métodos que faltaban (búsquedas, listas del formulario de asignación) | `WebIntegracionTest` (12 pruebas) | Cerrado |
+| H14 | 2026-11-28 | Revisión al agregar controladores web | `ManejadorGlobalErrores` (`@RestControllerAdvice`) aplicaba a todos los controladores: un error en una página web habría devuelto JSON | Media | `@RestControllerAdvice(annotations = RestController.class)`; las páginas muestran sus errores en la vista y en `error.html` | Pruebas de API y web en verde (49/49) | Cerrado |
+| H15 | 2026-11-28 | Revisión de `ReporteService` al crear la página de seguimiento | `AvanceEstudianteDTO.estado` llega como "Activo"/"Inactivo" (con mayúscula), distinto del resto | Baja | La plantilla compara con ese formato | Página de seguimiento probada | Cerrado |
+| H16 | 2026-11-28 | Pedido del equipo | Las pantallas Java (Vaadin) no usaban el CSS del frontend (negro y verde) | Media | Migración a Thymeleaf con el HTML y los mismos archivos CSS de `frontend/` (D18) | Capturas de login, panel, usuarios, reportes y vista de celular | Cerrado |
 
 ## 2. Matriz de riesgos
 
@@ -32,7 +36,7 @@ Probabilidad e impacto: 1 = bajo, 2 = medio, 3 = alto. Nivel = P × I.
 | R4 | Carga CSV grande y lenta (BCrypt) | 2 | 2 | 4 | Límite de 1000 filas y 2 MB, bloques de 100, BCrypt en paralelo. Pendiente: medir con 1000 filas | Desarrollo |
 | R5 | Servidor SMTP caído o cuenta bloqueada | 2 | 1 | 2 | El fallo se registra sin revertir la operación; `MAIL_ENABLED=false` en desarrollo | Desarrollo |
 | R6 | Correos tomados como *phishing* (la plataforma enseña a desconfiar de correos con claves) | 2 | 2 | 4 | Remitente institucional (`MAIL_FROM`), texto sin enlaces y aviso de no compartir la clave | Equipo |
-| R7 | Diferencias entre las guías y el proyecto (Vaadin, `validate`, roles) cuestionadas en la evaluación | 2 | 2 | 4 | Justificación en `docs/migracion-decisiones.md` (D1–D17) | Equipo |
+| R7 | Diferencias entre las guías y el proyecto (Thymeleaf + API, `validate`, roles) cuestionadas en la evaluación | 2 | 2 | 4 | Justificación en `docs/migracion-decisiones.md` (D1–D17) | Equipo |
 | R8 | Retraso por depender de una sola persona para el despliegue o la BD | 2 | 2 | 4 | README con los pasos de arranque; todos los integrantes ejecutan `clean test` | Scrum Master |
 
 ## 3. Lista de verificación antes de cada entrega

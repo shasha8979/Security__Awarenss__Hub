@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Reglas de negocio de los cursos de capacitacion.
@@ -41,6 +42,24 @@ public class CursoService {
     @Transactional(readOnly = true)
     public List<Curso> listarCursos() {
         return cursoRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
+    }
+
+    /**
+     * Búsqueda de la página de cursos: texto en título o descripción y
+     * estado ("activo", "inactivo"; vacío o "todos" = sin filtro).
+     */
+    @Transactional(readOnly = true)
+    public List<Curso> buscarCursos(String texto, String estado) {
+        String buscado = texto == null ? "" : texto.trim().toLowerCase(Locale.ROOT);
+
+        return listarCursos().stream()
+                .filter(c -> estado == null || estado.isBlank() || "todos".equals(estado)
+                        || c.getEstado().name().equals(estado))
+                .filter(c -> buscado.isEmpty()
+                        || c.getTitulo().toLowerCase(Locale.ROOT).contains(buscado)
+                        || (c.getDescripcion() != null
+                            && c.getDescripcion().toLowerCase(Locale.ROOT).contains(buscado)))
+                .toList();
     }
 
     @Transactional(readOnly = true)

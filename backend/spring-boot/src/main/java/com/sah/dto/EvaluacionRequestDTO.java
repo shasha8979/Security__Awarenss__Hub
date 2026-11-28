@@ -31,6 +31,17 @@ public record EvaluacionRequestDTO(
         Integer porcentajeAprobacion
 ) {
 
+    /** Formulario vacío para registrar (página web). */
+    public static EvaluacionRequestDTO vacio() {
+        return new EvaluacionRequestDTO(null, null, null, 70);
+    }
+
+    /** Datos actuales para el formulario de edición. */
+    public static EvaluacionRequestDTO desde(Evaluacion evaluacion) {
+        return new EvaluacionRequestDTO(evaluacion.getCursoId(), evaluacion.getTitulo(),
+                evaluacion.getDescripcion(), evaluacion.getPorcentajeAprobacion());
+    }
+
     public Evaluacion aEntidad() {
         Evaluacion evaluacion = new Evaluacion();
         evaluacion.setCursoId(cursoId);

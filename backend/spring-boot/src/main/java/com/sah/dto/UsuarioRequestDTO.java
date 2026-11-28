@@ -47,6 +47,24 @@ public record UsuarioRequestDTO(
         Integer empresaId
 ) {
 
+    /** Formulario vacío para registrar (página web). */
+    public static UsuarioRequestDTO vacio() {
+        return new UsuarioRequestDTO(null, null, null, null, "empleado", "activo", null);
+    }
+
+    /** Datos actuales para el formulario de edición (sin contraseña). */
+    public static UsuarioRequestDTO desde(Usuario usuario) {
+        return new UsuarioRequestDTO(
+                usuario.getNombres(),
+                usuario.getApellidos(),
+                usuario.getCorreo(),
+                null,
+                usuario.getRol(),
+                usuario.getEstado(),
+                usuario.getEmpresa() == null ? null : usuario.getEmpresa().getId()
+        );
+    }
+
     /** Convierte en entidad sin contraseña (el servicio la cifra). */
     public Usuario aEntidad(String estadoPorDefecto) {
         Usuario usuario = new Usuario();

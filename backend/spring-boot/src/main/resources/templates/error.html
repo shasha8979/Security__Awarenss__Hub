@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<!--
+    Página de error de las vistas web (403 sin permiso, 404 no existe, 500).
+    Reemplaza la "Whitelabel Error Page" de Spring con el estilo del panel.
+    La API REST no la usa: responde JSON (ManejadorGlobalErrores).
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Error ' + ${status} + ' | Security Awareness Hub'">Error | Security Awareness Hub</title>
+    <link rel="stylesheet" th:href="@{/admin/css/dashboard.css}">
+    <link rel="stylesheet" th:href="@{/admin/css/admin-views-common.css}">
+</head>
+<body>
+<main class="admin-content" style="max-width:640px; margin:80px auto; padding:0 16px;">
+
+    <div class="dashboard-panel">
+        <div class="panel-header">
+            <div>
+                <span class="section-label" th:text="'ERROR ' + ${status}">ERROR</span>
+                <h3 th:switch="${status}">
+                    <span th:case="403">No tienes permiso para ver esta página</span>
+                    <span th:case="404">La página no existe</span>
+                    <span th:case="*">Ocurrió un error inesperado</span>
+                </h3>
+            </div>
+        </div>
+
+        <div class="empty-state">
+            <div class="empty-icon" th:text="${status == 403} ? '⛔' : 'ⓘ'">ⓘ</div>
+            <p th:switch="${status}">
+                <span th:case="403">Tu rol no tiene acceso a esta sección. La restricción se aplica en el servidor.</span>
+                <span th:case="404">Revisa la dirección o vuelve al inicio.</span>
+                <span th:case="*">Intenta de nuevo más tarde. El detalle quedó registrado en el log.</span>
+            </p>
+        </div>
+
+        <div class="form-actions">
+            <a th:href="@{/}" class="admin-button">Volver al inicio</a>
+        </div>
+    </div>
+
+</main>
+</body>
+</html>

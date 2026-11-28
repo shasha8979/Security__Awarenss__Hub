@@ -180,6 +180,56 @@ public class ReporteService {
      * venir del usuario autenticado, nunca de un dato enviado por el
      * cliente, para que un administrador de empresa no vea otras empresas.
      */
+    /**
+     * Exportación de reportes a CSV (equivale a export_reporte.php).
+     * Separador ";" y BOM UTF-8 para que Excel abra bien tildes y ñ.
+     *
+     * @param tipo "cursos" o "empresas"
+     */
+    public String exportarCsv(String tipo) {
+
+        StringBuilder csv = new StringBuilder("﻿");
+
+        if ("cursos".equals(tipo)) {
+            csv.append("Curso;Estado;Asignados;Pendientes;En progreso;Completados;% completado\n");
+            for (AvanceCursoDTO c : generarAvancePorCurso()) {
+                csv.append(celda(c.curso())).append(';').append(c.estadoCurso()).append(';')
+                        .append(c.asignados()).append(';').append(c.pendientes()).append(';')
+                        .append(c.enProgreso()).append(';').append(c.completados()).append(';')
+                        .append(porcentaje(c.completados(), c.asignados())).append('\n');
+            }
+            return csv.toString();
+        }
+
+        if ("empresas".equals(tipo)) {
+            csv.append("Empresa;Estudiantes;Asignaciones;Pendientes;En progreso;Completadas;% completado\n");
+            for (AvanceEmpresaDTO e : generarAvancePorEmpresa()) {
+                csv.append(celda(e.empresa())).append(';').append(e.estudiantes()).append(';')
+                        .append(e.asignaciones()).append(';').append(e.pendientes()).append(';')
+                        .append(e.enProgreso()).append(';').append(e.completadas()).append(';')
+                        .append(porcentaje(e.completadas(), e.asignaciones())).append('\n');
+            }
+            return csv.toString();
+        }
+
+        throw new IllegalArgumentException("El tipo de reporte debe ser cursos o empresas.");
+    }
+
+    private static long porcentaje(long parte, long total) {
+        return total == 0 ? 0 : parte * 100 / total;
+    }
+
+    /** Texto entre comillas si contiene ; o comillas (formato CSV). */
+    private static String celda(String texto) {
+        if (texto == null) {
+            return "";
+        }
+        if (texto.contains(";") || texto.contains("\"") || texto.contains("\n")) {
+            return "\"" + texto.replace("\"", "\"\"") + "\"";
+        }
+        return texto;
+    }
+
     public List<AvanceEstudianteDTO> generarAvancePorEstudiante(Integer empresaId) {
 
         if (empresaId == null) {

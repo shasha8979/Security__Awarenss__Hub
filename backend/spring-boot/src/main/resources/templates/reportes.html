@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<!-- Reportes. Mismo HTML y CSS que frontend/Interface_Administrador/reportes.php -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: cabeza('Reportes', 'reportes.css')}"></head>
+<body>
+<div class="admin-layout">
+
+    <aside th:replace="~{fragments/layout :: barraLateral('reportes')}"></aside>
+
+    <main class="admin-main">
+        <header th:replace="~{fragments/layout :: barraSuperior('Reportes')}"></header>
+
+        <section class="admin-content">
+            <div class="admin-view" th:with="r=${resumen}">
+
+                <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+                <div class="dashboard-heading">
+                    <div>
+                        <span class="section-label">MÓDULO DE REPORTES</span>
+                        <h2>Reportes</h2>
+                        <p>Indicadores de capacitación calculados con los datos reales de la plataforma.</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-cards">
+                    <div class="dashboard-card">
+                        <div class="card-icon">♙</div>
+                        <div>
+                            <span>ESTUDIANTES</span>
+                            <strong th:text="${r.estudiantes()}">0</strong>
+                            <small th:text="${r.estudiantesActivos()} + ' activos'">activos</small>
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <div class="card-icon">▣</div>
+                        <div>
+                            <span>CURSOS</span>
+                            <strong th:text="${r.cursosTotal()}">0</strong>
+                            <small th:text="${r.cursosActivos()} + ' activos'">activos</small>
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <div class="card-icon">◉</div>
+                        <div>
+                            <span>ASIGNACIONES</span>
+                            <strong th:text="${r.asignacionesTotal()}">0</strong>
+                            <small th:text="${r.asignacionesPendientes()} + ' pendientes · ' + ${r.asignacionesEnProgreso()} + ' en progreso'">detalle</small>
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <div class="card-icon">%</div>
+                        <div>
+                            <span>COMPLETADO GENERAL</span>
+                            <strong th:text="${r.asignacionesTotal() == 0 ? 0 : r.asignacionesCompletadas() * 100 / r.asignacionesTotal()} + '%'">0%</strong>
+                            <small th:text="${r.asignacionesCompletadas()} + ' de ' + ${r.asignacionesTotal()} + ' asignaciones'">detalle</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AVANCE POR CURSO -->
+                <div class="dashboard-panel report-results">
+                    <div class="panel-header">
+                        <div>
+                            <span class="section-label">RESULTADOS</span>
+                            <h3>Avance por curso</h3>
+                        </div>
+                        <a class="admin-secondary-button" th:href="@{/reportes/exportar(tipo='cursos')}">Exportar CSV</a>
+                    </div>
+
+                    <div class="empty-state" th:if="${#lists.isEmpty(cursos)}">
+                        <div class="empty-icon">▤</div>
+                        <p>No hay cursos registrados.</p>
+                    </div>
+
+                    <div class="table-wrapper" th:unless="${#lists.isEmpty(cursos)}">
+                        <table class="users-table reports-table">
+                            <thead>
+                                <tr>
+                                    <th>CURSO</th><th>ESTADO</th><th>ASIGNADOS</th><th>PENDIENTES</th>
+                                    <th>EN PROGRESO</th><th>COMPLETADOS</th><th>% COMPLETADO</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="c : ${cursos}"
+                                    th:with="pct=${c.asignados() == 0 ? 0 : c.completados() * 100 / c.asignados()}">
+                                    <td><strong th:text="${c.curso()}">Curso</strong></td>
+                                    <td th:text="${c.estadoCurso()}">Activo</td>
+                                    <td th:text="${c.asignados()}">0</td>
+                                    <td th:text="${c.pendientes()}">0</td>
+                                    <td th:text="${c.enProgreso()}">0</td>
+                                    <td th:text="${c.completados()}">0</td>
+                                    <td>
+                                        <div class="progress-container" th:if="${c.asignados() > 0}">
+                                            <div class="progress-bar"><span th:style="'width:' + ${pct} + '%'"></span></div>
+                                            <span th:text="${pct} + '%'">0%</span>
+                                        </div>
+                                        <small th:if="${c.asignados() == 0}">Sin asignaciones</small>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- AVANCE POR EMPRESA -->
+                <div class="dashboard-panel report-results">
+                    <div class="panel-header">
+                        <div>
+                            <span class="section-label">RESULTADOS</span>
+                            <h3>Avance por empresa</h3>
+                        </div>
+                        <a class="admin-secondary-button" th:href="@{/reportes/exportar(tipo='empresas')}">Exportar CSV</a>
+                    </div>
+
+                    <div class="empty-state" th:if="${#lists.isEmpty(empresas)}">
+                        <div class="empty-icon">▤</div>
+                        <p>No hay empresas registradas.</p>
+                    </div>
+
+                    <div class="table-wrapper" th:unless="${#lists.isEmpty(empresas)}">
+                        <table class="users-table reports-table">
+                            <thead>
+                                <tr>
+                                    <th>EMPRESA</th><th>ESTUDIANTES</th><th>ASIGNACIONES</th><th>PENDIENTES</th>
+                                    <th>EN PROGRESO</th><th>COMPLETADAS</th><th>% COMPLETADO</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="e : ${empresas}"
+                                    th:with="pct=${e.asignaciones() == 0 ? 0 : e.completadas() * 100 / e.asignaciones()}">
+                                    <td><strong th:text="${e.empresa()}">Empresa</strong></td>
+                                    <td th:text="${e.estudiantes()}">0</td>
+                                    <td th:text="${e.asignaciones()}">0</td>
+                                    <td th:text="${e.pendientes()}">0</td>
+                                    <td th:text="${e.enProgreso()}">0</td>
+                                    <td th:text="${e.completadas()}">0</td>
+                                    <td>
+                                        <div class="progress-container" th:if="${e.asignaciones() > 0}">
+                                            <div class="progress-bar"><span th:style="'width:' + ${pct} + '%'"></span></div>
+                                            <span th:text="${pct} + '%'">0%</span>
+                                        </div>
+                                        <small th:if="${e.asignaciones() == 0}">Sin asignaciones</small>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>

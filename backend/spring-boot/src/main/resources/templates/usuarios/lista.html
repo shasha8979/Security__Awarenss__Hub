@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<!-- Lista de usuarios. Mismo HTML y CSS que frontend/Interface_Administrador/usuarios.php -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: cabeza('Usuarios', 'usuarios.css')}"></head>
+<body>
+<div class="admin-layout">
+
+    <aside th:replace="~{fragments/layout :: barraLateral('usuarios')}"></aside>
+
+    <main class="admin-main">
+        <header th:replace="~{fragments/layout :: barraSuperior('Usuarios')}"></header>
+
+        <section class="admin-content">
+            <div class="admin-view">
+
+                <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+                <div class="dashboard-heading">
+                    <div>
+                        <span class="section-label">GESTIÓN DE USUARIOS</span>
+                        <h2>Usuarios</h2>
+                        <p>Administra los usuarios y consulta su información dentro de la plataforma.</p>
+                    </div>
+                    <a th:href="@{/usuarios/nuevo}" class="admin-button">+ Nuevo usuario</a>
+                </div>
+
+                <!-- FILTROS (recargan la página con ?search=&estado=) -->
+                <form th:action="@{/usuarios}" method="get" class="users-toolbar">
+                    <div class="search-box">
+                        <span class="search-icon">⌕</span>
+                        <input type="search" name="search" th:value="${search}"
+                            placeholder="Buscar por nombre, apellido o correo...">
+                    </div>
+                    <select class="users-filter" name="estado">
+                        <option value="todos" th:selected="${estado == 'todos'}">Todos los estados</option>
+                        <option value="activo" th:selected="${estado == 'activo'}">Activos</option>
+                        <option value="inactivo" th:selected="${estado == 'inactivo'}">Inactivos</option>
+                    </select>
+                    <button type="submit" class="admin-button">Buscar</button>
+                </form>
+
+                <div class="dashboard-card users-table-card">
+                    <div class="card-header">
+                        <div>
+                            <span class="section-label">DIRECTORIO</span>
+                            <h3>Usuarios registrados</h3>
+                        </div>
+                        <span class="card-period" th:text="${#lists.size(usuarios)} + ' usuario(s)'">0 usuario(s)</span>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table class="users-table">
+                            <thead>
+                                <tr>
+                                    <th>USUARIO</th>
+                                    <th>ROL</th>
+                                    <th>EMPRESA</th>
+                                    <th>ESTADO</th>
+                                    <th>FECHA DE REGISTRO</th>
+                                    <th>ACCIONES</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(usuarios)}">
+                                    <td colspan="6" class="loading-users">No se encontraron usuarios.</td>
+                                </tr>
+                                <tr th:each="u : ${usuarios}">
+                                    <td>
+                                        <strong th:text="${u.nombres} + ' ' + ${u.apellidos}">Nombre</strong><br>
+                                        <small th:text="${u.correo}">correo</small>
+                                    </td>
+                                    <td th:text="${u.rol == 'empleado'} ? 'Estudiante' : (${u.rol == 'admin_empresa'} ? 'Admin. de empresa' : 'Administrador')">Rol</td>
+                                    <td th:text="${u.empresa != null} ? ${u.empresa.nombre} : '—'">Empresa</td>
+                                    <td>
+                                        <span class="badge" th:classappend="'badge-' + ${u.estado}"
+                                            th:text="${u.estado == 'activo'} ? 'Activo' : 'Inactivo'">Activo</span>
+                                    </td>
+                                    <td th:text="${u.fechaRegistro != null} ? ${#temporals.format(u.fechaRegistro, 'dd/MM/yyyy HH:mm')} : '—'">fecha</td>
+                                    <td class="table-actions">
+                                        <a th:href="@{/usuarios/editar/{id}(id=${u.id})}" class="link-action">Editar</a>
+                                        <form th:action="@{/usuarios/{id}/estado(id=${u.id})}" method="post">
+                                            <input type="hidden" name="estado"
+                                                th:value="${u.estado == 'activo'} ? 'inactivo' : 'activo'">
+                                            <button type="submit" class="link-action"
+                                                th:text="${u.estado == 'activo'} ? 'Desactivar' : 'Activar'">Desactivar</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="table-footer">
+                        <span th:text="${#lists.size(usuarios)} + ' usuario(s) en total'">0 usuario(s)</span>
+                    </div>
+                </div>
+
+                <!-- CARGA MASIVA POR CSV (Sesión 8) -->
+                <div class="dashboard-card users-table-card" style="padding:24px; margin-top:24px;">
+                    <div class="card-header">
+                        <div>
+                            <span class="section-label">SESIÓN 8</span>
+                            <h3>Carga masiva de usuarios (CSV)</h3>
+                        </div>
+                    </div>
+
+                    <p class="field-hint">
+                        Archivo .csv en UTF-8 (máximo 1000 filas, 2 MB) con la cabecera
+                        <strong>nombres;apellidos;correo;nit_empresa;rol</strong>.
+                        El rol es opcional (empleado o admin_empresa). Cada usuario recibe por
+                        correo una contraseña temporal.
+                    </p>
+
+                    <form th:action="@{/usuarios/carga-csv}" method="post" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="archivoCsv">Archivo CSV</label>
+                            <input type="file" id="archivoCsv" name="archivo" accept=".csv" required>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="admin-button">Cargar usuarios</button>
+                        </div>
+                    </form>
+
+                    <th:block th:if="${resultadoCarga != null}">
+                        <p style="margin-top:16px;"
+                            th:text="'Filas leídas: ' + ${resultadoCarga.totalFilas()} + ' · Registrados: ' + ${resultadoCarga.creados()} + ' · Rechazados: ' + ${resultadoCarga.rechazados()}">
+                            Resumen
+                        </p>
+                        <div class="table-wrapper" th:if="${!#lists.isEmpty(resultadoCarga.errores())}">
+                            <table class="users-table">
+                                <thead>
+                                    <tr><th>LÍNEA</th><th>CORREO</th><th>MOTIVO</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="e : ${resultadoCarga.errores()}">
+                                        <td th:text="${e.fila()}">2</td>
+                                        <td th:text="${e.correo() != null} ? ${e.correo()} : '—'">correo</td>
+                                        <td th:text="${e.mensaje()}">motivo</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </th:block>
+                </div>
+
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>

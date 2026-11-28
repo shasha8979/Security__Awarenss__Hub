@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<!-- Crear / editar usuario. Mismo HTML y CSS que el formulario de usuarios.php -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: cabeza(${titulo}, 'usuarios.css')}"></head>
+<body>
+<div class="admin-layout">
+
+    <aside th:replace="~{fragments/layout :: barraLateral('usuarios')}"></aside>
+
+    <main class="admin-main">
+        <header th:replace="~{fragments/layout :: barraSuperior('Usuarios')}"></header>
+
+        <section class="admin-content">
+            <div class="admin-view">
+
+                <div class="dashboard-heading">
+                    <div>
+                        <span class="section-label">GESTIÓN DE USUARIOS</span>
+                        <h2>Usuarios</h2>
+                        <p>Administra los usuarios y consulta su información dentro de la plataforma.</p>
+                    </div>
+                </div>
+
+                <div class="admin-alert admin-alert-error" th:if="${errores['general']}" th:text="${errores['general']}"></div>
+
+                <div class="dashboard-card users-table-card" style="padding:24px;">
+
+                    <div class="card-header">
+                        <div>
+                            <span class="section-label">ADMINISTRACIÓN</span>
+                            <h3 th:text="${titulo}">Nuevo usuario</h3>
+                        </div>
+                    </div>
+
+                    <!-- th:action agrega el token CSRF -->
+                    <form th:action="@{/usuarios/guardar}" method="post">
+
+                        <input type="hidden" name="id" th:if="${id != null}" th:value="${id}">
+
+                        <div class="form-group">
+                            <label for="usuarioNombres">Nombres</label>
+                            <input type="text" id="usuarioNombres" name="nombres" maxlength="100"
+                                th:value="${usuario.nombres()}" required>
+                            <small class="field-hint" th:if="${errores['nombres']}" th:text="${errores['nombres']}"></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="usuarioApellidos">Apellidos</label>
+                            <input type="text" id="usuarioApellidos" name="apellidos" maxlength="100"
+                                th:value="${usuario.apellidos()}" required>
+                            <small class="field-hint" th:if="${errores['apellidos']}" th:text="${errores['apellidos']}"></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="usuarioCorreo">Correo electrónico</label>
+                            <input type="email" id="usuarioCorreo" name="correo" maxlength="150"
+                                th:value="${usuario.correo()}" required>
+                            <small class="field-hint" th:if="${errores['correo']}" th:text="${errores['correo']}"></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="usuarioPassword">Contraseña</label>
+                            <input type="password" id="usuarioPassword" name="password" minlength="8" maxlength="72"
+                                th:required="${id == null}" autocomplete="new-password">
+                            <small class="field-hint"
+                                th:text="${id == null} ? 'Mínimo 8 caracteres.' : 'Déjala vacía para conservar la contraseña actual.'">
+                                Mínimo 8 caracteres.
+                            </small>
+                            <small class="field-hint" th:if="${errores['password']}" th:text="${errores['password']}"></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="usuarioRol">Rol</label>
+                            <select id="usuarioRol" name="rol" required>
+                                <option value="empleado" th:selected="${usuario.rol() == 'empleado'}">Estudiante</option>
+                                <option value="admin_empresa" th:selected="${usuario.rol() == 'admin_empresa'}">Administrador de empresa</option>
+                                <option value="admin" th:selected="${usuario.rol() == 'admin'}">Administrador del sistema</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="usuarioEmpresa">Empresa</label>
+                            <select id="usuarioEmpresa" name="empresaId">
+                                <option value="">Sin empresa (solo administrador del sistema)</option>
+                                <option th:each="e : ${empresas}" th:value="${e.id}" th:text="${e.nombre}"
+                                    th:selected="${usuario.empresaId() == e.id}">Empresa</option>
+                            </select>
+                            <small class="field-hint">Obligatoria para estudiantes y administradores de empresa.</small>
+                        </div>
+
+                        <div class="form-group" th:if="${id != null}">
+                            <label for="usuarioEstado">Estado</label>
+                            <select id="usuarioEstado" name="estado">
+                                <option value="activo" th:selected="${usuario.estado() == 'activo'}">Activo</option>
+                                <option value="inactivo" th:selected="${usuario.estado() == 'inactivo'}">Inactivo</option>
+                            </select>
+                        </div>
+
+                        <div class="form-actions">
+                            <a th:href="@{/usuarios}" class="admin-secondary-button">Cancelar</a>
+                            <button type="submit" class="admin-button"
+                                th:text="${id == null} ? 'Crear usuario' : 'Guardar cambios'">Crear usuario</button>
+                        </div>
+
+                    </form>
+                </div>
+
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>

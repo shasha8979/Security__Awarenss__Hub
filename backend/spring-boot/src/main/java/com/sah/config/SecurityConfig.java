@@ -1,9 +1,6 @@
-
-package com.sah.security;
+package com.sah.config;
 
 import com.sah.service.UsuarioDetailsService;
-import com.sah.views.LoginView;
-import com.vaadin.flow.spring.security.VaadinSecurityConfigurer;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -100,24 +97,44 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /** Seguridad de la interfaz Vaadin (login con formulario y sesion). */
+    /**
+     * Seguridad de las páginas web (Thymeleaf), como en el ejercicio
+     * Gestor de Tareas: formulario de login, sesión por cookie y CSRF
+     * activado (th:action agrega el token a cada formulario).
+     *
+     * Las reglas se aplican en el servidor: aunque alguien escriba la URL
+     * a mano, un rol sin permiso recibe 403. El orden importa: las reglas
+     * específicas van antes de anyRequest().
+     */
     @Bean
     @Order(2)
-    public SecurityFilterChain securityFilterChain(
+    public SecurityFilterChain webSecurityFilterChain(
             HttpSecurity http,
             DaoAuthenticationProvider authenticationProvider)
             throws Exception {
 
-        http.authenticationProvider(authenticationProvider);
-
-        // Hoja de estilos del tema SAH: la necesita también la página de
-        // login, antes de iniciar sesión (solo CSS, sin datos)
-        http.authorizeHttpRequests(reglas -> reglas
-                .requestMatchers("/styles/**").permitAll());
-
-        http.with(VaadinSecurityConfigurer.vaadin(), configurer ->
-                configurer.loginView(LoginView.class)
-        );
+        http
+                .authenticationProvider(authenticationProvider)
+                .authorizeHttpRequests(reglas -> reglas
+                        // Login y estilos (CSS del frontend): públicos
+                        .requestMatchers("/login", "/admin/css/**", "/auth/**",
+                                "/error").permitAll()
+                        // Administración del sistema: solo administrador
+                        .requestMatchers("/panel/**", "/usuarios/**", "/empresas/**", "/cursos/**",
+                                "/evaluaciones/**", "/reportes/**").hasRole("ADMIN")
+                        // Asignaciones: administrador y administrador de empresa
+                        .requestMatchers("/asignaciones/**")
+                                .hasAnyRole("ADMIN", "ADMIN_EMPRESA")
+                        .requestMatchers("/seguimiento/**").hasRole("ADMIN_EMPRESA")
+                        .requestMatchers("/mis-capacitaciones/**").hasRole("EMPLEADO")
+                        .anyRequest().authenticated())
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/", true)
+                        .permitAll())
+                .logout(logout -> logout
+                        .logoutSuccessUrl("/login?logout")
+                        .permitAll());
 
         return http.build();
     }

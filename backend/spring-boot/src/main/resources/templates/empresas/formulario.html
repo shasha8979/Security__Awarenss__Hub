@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<!-- Crear / editar empresa. Mismo HTML y CSS que el formulario de empresas.php -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: cabeza(${titulo}, 'empresas.css')}"></head>
+<body>
+<div class="admin-layout">
+
+    <aside th:replace="~{fragments/layout :: barraLateral('empresas')}"></aside>
+
+    <main class="admin-main">
+        <header th:replace="~{fragments/layout :: barraSuperior('Empresas')}"></header>
+
+        <section class="admin-content">
+            <div class="admin-view">
+
+                <div class="dashboard-heading">
+                    <div>
+                        <span class="section-label">GESTIÓN DE EMPRESAS</span>
+                        <h2>Empresas</h2>
+                        <p>Administra las organizaciones registradas en la plataforma.</p>
+                    </div>
+                </div>
+
+                <div class="admin-alert admin-alert-error" th:if="${errores['general']}" th:text="${errores['general']}"></div>
+
+                <div class="dashboard-card users-table-card" style="padding:24px;">
+                    <div class="card-header">
+                        <div>
+                            <span class="section-label">ADMINISTRACIÓN</span>
+                            <h3 th:text="${titulo}">Nueva empresa</h3>
+                        </div>
+                    </div>
+
+                    <form th:action="@{/empresas/guardar}" method="post">
+
+                        <input type="hidden" name="id" th:if="${id != null}" th:value="${id}">
+
+                        <div class="form-group">
+                            <label for="empresaNombre">Nombre</label>
+                            <input type="text" id="empresaNombre" name="nombre" maxlength="150"
+                                th:value="${empresa.nombre()}" required>
+                            <small class="field-hint" th:if="${errores['nombre']}" th:text="${errores['nombre']}"></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="empresaNit">NIT</label>
+                            <input type="text" id="empresaNit" name="nit" maxlength="30"
+                                th:value="${empresa.nit()}" required>
+                            <small class="field-hint" th:if="${errores['nit']}" th:text="${errores['nit']}"></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="empresaCorreo">Correo de contacto</label>
+                            <input type="email" id="empresaCorreo" name="correo" maxlength="150"
+                                th:value="${empresa.correo()}" required>
+                            <small class="field-hint" th:if="${errores['correo']}" th:text="${errores['correo']}"></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="empresaTelefono">Teléfono</label>
+                            <input type="text" id="empresaTelefono" name="telefono" maxlength="30"
+                                th:value="${empresa.telefono()}">
+                            <small class="field-hint" th:if="${errores['telefono']}" th:text="${errores['telefono']}"></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="empresaDireccion">Dirección</label>
+                            <input type="text" id="empresaDireccion" name="direccion" maxlength="200"
+                                th:value="${empresa.direccion()}">
+                            <small class="field-hint" th:if="${errores['direccion']}" th:text="${errores['direccion']}"></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="empresaTipo">Tipo</label>
+                            <select id="empresaTipo" name="tipo" required>
+                                <option th:each="t : ${tipos}" th:value="${t.name()}"
+                                    th:text="${#strings.capitalize(t.name())}"
+                                    th:selected="${empresa.tipo() == t}">Privada</option>
+                            </select>
+                        </div>
+
+                        <div class="form-actions">
+                            <a th:href="@{/empresas}" class="admin-secondary-button">Cancelar</a>
+                            <button type="submit" class="admin-button"
+                                th:text="${id == null} ? 'Registrar empresa' : 'Guardar cambios'">Registrar empresa</button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>

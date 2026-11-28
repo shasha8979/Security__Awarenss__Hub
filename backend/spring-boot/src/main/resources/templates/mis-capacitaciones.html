@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<!-- Capacitaciones del estudiante. Componentes de dashboard.css y asignaciones.css -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: cabeza('Mis capacitaciones', 'asignaciones.css')}"></head>
+<body>
+<div class="admin-layout">
+
+    <aside th:replace="~{fragments/layout :: barraLateral('mis-capacitaciones')}"></aside>
+
+    <main class="admin-main">
+        <header th:replace="~{fragments/layout :: barraSuperior('Mis capacitaciones')}"></header>
+
+        <section class="admin-content">
+            <div class="admin-view">
+
+                <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+                <div class="dashboard-heading">
+                    <div>
+                        <span class="section-label">CAPACITACIÓN</span>
+                        <h2>Mis capacitaciones</h2>
+                        <p>Marca "Iniciar" cuando comiences y "Completar" al terminar: tu empresa verá tu avance.</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-cards">
+                    <div class="dashboard-card">
+                        <div class="card-icon">◉</div>
+                        <div>
+                            <span>PENDIENTES</span>
+                            <strong th:text="${#lists.size(asignaciones.?[estado.name() == 'pendiente'])}">0</strong>
+                            <small>Por iniciar</small>
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <div class="card-icon">▣</div>
+                        <div>
+                            <span>EN PROGRESO</span>
+                            <strong th:text="${#lists.size(asignaciones.?[estado.name() == 'progreso'])}">0</strong>
+                            <small>En curso</small>
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <div class="card-icon">★</div>
+                        <div>
+                            <span>COMPLETADAS</span>
+                            <strong th:text="${#lists.size(asignaciones.?[estado.name() == 'completado'])}">0</strong>
+                            <small>Terminadas</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card users-table-card">
+                    <div class="card-header">
+                        <div>
+                            <span class="section-label">CONTENIDO ASIGNADO</span>
+                            <h3>Cursos y evaluaciones</h3>
+                        </div>
+                        <span class="card-period" th:text="${#lists.size(asignaciones)} + ' asignación(es)'">0</span>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table class="users-table">
+                            <thead>
+                                <tr>
+                                    <th>CAPACITACIÓN</th>
+                                    <th>TIPO</th>
+                                    <th>ESTADO</th>
+                                    <th>ASIGNADA</th>
+                                    <th>ACCIONES</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(asignaciones)}">
+                                    <td colspan="5" class="loading-users">Todavía no tienes capacitaciones asignadas.</td>
+                                </tr>
+                                <tr th:each="a : ${asignaciones}">
+                                    <td>
+                                        <strong th:text="${a.tipo.name() == 'curso'} ? ${a.curso.titulo} : ${a.evaluacion.titulo}">Curso</strong><br>
+                                        <small th:if="${a.tipo.name() == 'curso'}"
+                                            th:text="${a.curso.duracion} + ' h · ' + ${a.curso.numeroModulos} + ' módulo(s) · aprobación ' + ${a.curso.porcentajeAprobacion} + '%'">detalle</small>
+                                        <small th:if="${a.tipo.name() == 'evaluacion'}"
+                                            th:text="'Aprobación mínima ' + ${a.evaluacion.porcentajeAprobacion} + '%'">detalle</small>
+                                    </td>
+                                    <td th:text="${a.tipo.name() == 'curso'} ? 'Curso' : 'Evaluación'">Curso</td>
+                                    <td><span th:replace="~{fragments/estado :: asignacion(${a.estado})}"></span></td>
+                                    <td th:text="${a.fechaAsignacion != null} ? ${#temporals.format(a.fechaAsignacion, 'dd/MM/yyyy')} : '—'">fecha</td>
+                                    <td class="table-actions">
+                                        <form th:if="${a.estado.name() == 'pendiente'}"
+                                            th:action="@{/mis-capacitaciones/{id}/avance(id=${a.id})}" method="post">
+                                            <input type="hidden" name="estado" value="progreso">
+                                            <button type="submit" class="admin-button">Iniciar</button>
+                                        </form>
+                                        <form th:if="${a.estado.name() == 'progreso'}"
+                                            th:action="@{/mis-capacitaciones/{id}/avance(id=${a.id})}" method="post">
+                                            <input type="hidden" name="estado" value="completado">
+                                            <button type="submit" class="admin-button">Completar</button>
+                                        </form>
+                                        <span th:if="${a.estado.name() == 'completado'}">✓ Terminada</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>

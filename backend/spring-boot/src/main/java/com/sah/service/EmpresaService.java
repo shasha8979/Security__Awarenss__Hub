@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Reglas de negocio de las empresas.
@@ -39,6 +40,24 @@ public class EmpresaService {
     @Transactional(readOnly = true)
     public List<Empresa> listarEmpresas() {
         return empresaRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
+    }
+
+    /**
+     * Búsqueda de la página de empresas: texto en nombre, NIT o correo y
+     * estado ("activo", "inactivo"; vacío o "todos" = sin filtro).
+     */
+    @Transactional(readOnly = true)
+    public List<Empresa> buscarEmpresas(String texto, String estado) {
+        String buscado = texto == null ? "" : texto.trim().toLowerCase(Locale.ROOT);
+
+        return listarEmpresas().stream()
+                .filter(e -> estado == null || estado.isBlank() || "todos".equals(estado)
+                        || e.getEstado().name().equals(estado))
+                .filter(e -> buscado.isEmpty()
+                        || e.getNombre().toLowerCase(Locale.ROOT).contains(buscado)
+                        || e.getNit().toLowerCase(Locale.ROOT).contains(buscado)
+                        || e.getCorreo().toLowerCase(Locale.ROOT).contains(buscado))
+                .toList();
     }
 
     @Transactional(readOnly = true)

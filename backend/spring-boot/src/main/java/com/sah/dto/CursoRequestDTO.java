@@ -46,6 +46,18 @@ public record CursoRequestDTO(
 ) {
 
     /** Convierte el DTO en entidad (sin id: lo asigna la base de datos). */
+    /** Formulario vacío para registrar (página web), con los valores por defecto del SQL. */
+    public static CursoRequestDTO vacio() {
+        return new CursoRequestDTO(null, null, Curso.NivelDificultad.basico, null, 1, 70);
+    }
+
+    /** Datos actuales para el formulario de edición. */
+    public static CursoRequestDTO desde(Curso curso) {
+        return new CursoRequestDTO(curso.getTitulo(), curso.getDescripcion(),
+                curso.getNivelDificultad(), curso.getDuracion(),
+                curso.getNumeroModulos(), curso.getPorcentajeAprobacion());
+    }
+
     public Curso aEntidad() {
         Curso curso = new Curso();
         curso.setTitulo(titulo);

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<!-- Crear / editar curso. Mismo HTML y CSS que el formulario de courses.php -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: cabeza(${titulo}, 'courses_admin.css')}"></head>
+<body>
+<div class="admin-layout">
+
+    <aside th:replace="~{fragments/layout :: barraLateral('cursos')}"></aside>
+
+    <main class="admin-main">
+        <header th:replace="~{fragments/layout :: barraSuperior('Cursos')}"></header>
+
+        <section class="admin-content">
+            <div class="admin-view">
+
+                <div class="dashboard-heading">
+                    <div>
+                        <span class="section-label">GESTIÓN DE CURSOS</span>
+                        <h2>Cursos</h2>
+                        <p>Administra los cursos disponibles dentro de la plataforma.</p>
+                    </div>
+                </div>
+
+                <div class="admin-alert admin-alert-error" th:if="${errores['general']}" th:text="${errores['general']}"></div>
+
+                <div class="dashboard-card users-table-card" style="padding:24px;">
+                    <div class="card-header">
+                        <div>
+                            <span class="section-label">ADMINISTRACIÓN</span>
+                            <h3 th:text="${titulo}">Nuevo curso</h3>
+                        </div>
+                    </div>
+
+                    <form th:action="@{/cursos/guardar}" method="post">
+
+                        <input type="hidden" name="id" th:if="${id != null}" th:value="${id}">
+
+                        <div class="form-group">
+                            <label for="cursoTitulo">Título</label>
+                            <input type="text" id="cursoTitulo" name="titulo" maxlength="150"
+                                th:value="${curso.titulo()}" required>
+                            <small class="field-hint" th:if="${errores['titulo']}" th:text="${errores['titulo']}"></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cursoDescripcion">Descripción</label>
+                            <textarea id="cursoDescripcion" name="descripcion" rows="4" required
+                                th:text="${curso.descripcion()}"></textarea>
+                            <small class="field-hint" th:if="${errores['descripcion']}" th:text="${errores['descripcion']}"></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cursoNivel">Nivel de dificultad</label>
+                            <select id="cursoNivel" name="nivelDificultad" required>
+                                <option th:each="n : ${niveles}" th:value="${n.name()}"
+                                    th:text="${#strings.capitalize(n.name())}"
+                                    th:selected="${curso.nivelDificultad() == n}">Básico</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cursoDuracion">Duración (horas)</label>
+                            <input type="number" id="cursoDuracion" name="duracion" min="1"
+                                th:value="${curso.duracion()}" required>
+                            <small class="field-hint" th:if="${errores['duracion']}" th:text="${errores['duracion']}"></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cursoModulos">Número de módulos</label>
+                            <input type="number" id="cursoModulos" name="numeroModulos" min="1"
+                                th:value="${curso.numeroModulos()}" required>
+                            <small class="field-hint" th:if="${errores['numeroModulos']}" th:text="${errores['numeroModulos']}"></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cursoPorcentaje">Porcentaje de aprobación (%)</label>
+                            <input type="number" id="cursoPorcentaje" name="porcentajeAprobacion" min="0" max="100"
+                                th:value="${curso.porcentajeAprobacion()}" required>
+                            <small class="field-hint" th:if="${errores['porcentajeAprobacion']}" th:text="${errores['porcentajeAprobacion']}"></small>
+                        </div>
+
+                        <div class="form-actions">
+                            <a th:href="@{/cursos}" class="admin-secondary-button">Cancelar</a>
+                            <button type="submit" class="admin-button"
+                                th:text="${id == null} ? 'Crear curso' : 'Guardar cambios'">Crear curso</button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<!-- Etiqueta de estado de una asignación (clases badge-* de admin-views-common.css) -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+<span th:fragment="asignacion(estado)" class="badge"
+      th:classappend="'badge-' + ${estado.name()}"
+      th:text="${estado.name() == 'pendiente'} ? 'Pendiente' : (${estado.name() == 'progreso'} ? 'En progreso' : 'Completada')">Pendiente</span>
+</body>
+</html>

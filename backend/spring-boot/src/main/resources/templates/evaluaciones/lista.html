@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<!-- Lista de evaluaciones. Mismo HTML y CSS que frontend/Interface_Administrador/evaluaciones.php -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: cabeza('Evaluaciones', 'evaluaciones.css')}"></head>
+<body>
+<div class="admin-layout">
+
+    <aside th:replace="~{fragments/layout :: barraLateral('evaluaciones')}"></aside>
+
+    <main class="admin-main">
+        <header th:replace="~{fragments/layout :: barraSuperior('Evaluaciones')}"></header>
+
+        <section class="admin-content">
+            <div class="admin-view">
+
+                <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+                <div class="dashboard-heading">
+                    <div>
+                        <span class="section-label">GESTIÓN DE EVALUACIONES</span>
+                        <h2>Evaluaciones</h2>
+                        <p>Administra las evaluaciones de cada curso y su porcentaje de aprobación.</p>
+                    </div>
+                    <a th:href="@{/evaluaciones/nueva}" class="admin-button">+ Nueva evaluación</a>
+                </div>
+
+                <form th:action="@{/evaluaciones}" method="get" class="users-toolbar">
+                    <select class="users-filter" name="cursoId">
+                        <option value="">Todos los cursos</option>
+                        <option th:each="c : ${cursos}" th:value="${c.id}" th:text="${c.titulo}"
+                            th:selected="${cursoId == c.id}">Curso</option>
+                    </select>
+                    <button type="submit" class="admin-button">Filtrar</button>
+                </form>
+
+                <div class="dashboard-card users-table-card">
+                    <div class="card-header">
+                        <div>
+                            <span class="section-label">CATÁLOGO</span>
+                            <h3>Evaluaciones registradas</h3>
+                        </div>
+                        <span class="card-period" th:text="${#lists.size(evaluaciones)} + ' evaluación(es)'">0</span>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table class="users-table">
+                            <thead>
+                                <tr>
+                                    <th>EVALUACIÓN</th>
+                                    <th>CURSO</th>
+                                    <th>APROBACIÓN</th>
+                                    <th>ESTADO</th>
+                                    <th>ACCIONES</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(evaluaciones)}">
+                                    <td colspan="5" class="loading-users">No se encontraron evaluaciones.</td>
+                                </tr>
+                                <tr th:each="e : ${evaluaciones}">
+                                    <td>
+                                        <strong th:text="${e.titulo()}">Evaluación</strong><br>
+                                        <small th:text="${e.descripcion()}">descripción</small>
+                                    </td>
+                                    <td th:text="${e.curso()}">Curso</td>
+                                    <td th:text="${e.porcentajeAprobacion()} + '%'">70%</td>
+                                    <td>
+                                        <span class="badge" th:classappend="'badge-' + ${e.estado().name()}"
+                                            th:text="${e.estado().name() == 'activo'} ? 'Activa' : 'Inactiva'">Activa</span>
+                                    </td>
+                                    <td class="table-actions">
+                                        <a th:href="@{/evaluaciones/editar/{id}(id=${e.id()})}" class="link-action">Editar</a>
+                                        <form th:action="@{/evaluaciones/{id}/estado(id=${e.id()})}" method="post">
+                                            <input type="hidden" name="estado"
+                                                th:value="${e.estado().name() == 'activo'} ? 'inactivo' : 'activo'">
+                                            <button type="submit" class="link-action"
+                                                th:text="${e.estado().name() == 'activo'} ? 'Desactivar' : 'Activar'">Desactivar</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="table-footer">
+                        <span th:text="${#lists.size(evaluaciones)} + ' evaluación(es) en total'">0</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>

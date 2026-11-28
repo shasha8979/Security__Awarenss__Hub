@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<!--
+    Fragmentos comunes de todas las páginas del panel.
+    Equivale a frontend/Interface_Administrador/partials/_header.php,
+    _footer.php y _flash.php, con las mismas clases CSS.
+
+    Uso en cada página:
+      <head th:replace="~{fragments/layout :: cabeza('Usuarios', 'usuarios.css')}"></head>
+      <aside th:replace="~{fragments/layout :: barraLateral('usuarios')}"></aside>
+      <header th:replace="~{fragments/layout :: barraSuperior('Usuarios')}"></header>
+      <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+    "sesion" (UsuarioSesionDTO) la agrega DatosComunesWebAdvice a cada página.
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="cabeza(titulo, cssExtra)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${titulo} + ' | Security Awareness Hub'">Security Awareness Hub</title>
+    <!-- Mismos CSS del frontend original (los copia Maven a /admin/css/) -->
+    <link rel="stylesheet" th:href="@{/admin/css/dashboard.css}">
+    <link rel="stylesheet" th:href="@{/admin/css/admin-views-common.css}">
+    <link rel="stylesheet" th:if="${cssExtra != null}" th:href="@{/admin/css/{hoja}(hoja=${cssExtra})}">
+</head>
+
+<body>
+
+<aside class="admin-sidebar" th:fragment="barraLateral(vista)">
+
+    <div class="admin-brand">
+        <div class="admin-brand-icon">SAH</div>
+        <div>
+            <strong>Security</strong>
+            <span>Awareness Hub</span>
+        </div>
+    </div>
+
+    <div class="admin-profile">
+        <div class="profile-avatar" th:text="${sesion.inicial()}">A</div>
+        <div>
+            <strong th:text="${sesion.nombreCompleto()}">Administrador</strong>
+            <span th:text="${sesion.descripcionPanel()}">Panel administrativo</span>
+        </div>
+    </div>
+
+    <nav class="admin-navigation">
+
+        <!-- Administrador del sistema -->
+        <th:block th:if="${sesion.esAdmin()}">
+            <span class="navigation-title">PRINCIPAL</span>
+            <a th:href="@{/panel}" th:classappend="${vista == 'panel'} ? 'active'" class="nav-item">
+                <span class="nav-icon">▦</span><span>Dashboard</span>
+            </a>
+
+            <span class="navigation-title">ADMINISTRACIÓN</span>
+            <a th:href="@{/usuarios}" th:classappend="${vista == 'usuarios'} ? 'active'" class="nav-item">
+                <span class="nav-icon">♙</span><span>Usuarios</span>
+            </a>
+            <a th:href="@{/empresas}" th:classappend="${vista == 'empresas'} ? 'active'" class="nav-item">
+                <span class="nav-icon">▤</span><span>Empresas</span>
+            </a>
+            <a th:href="@{/cursos}" th:classappend="${vista == 'cursos'} ? 'active'" class="nav-item">
+                <span class="nav-icon">▣</span><span>Cursos</span>
+            </a>
+            <a th:href="@{/evaluaciones}" th:classappend="${vista == 'evaluaciones'} ? 'active'" class="nav-item">
+                <span class="nav-icon">✓</span><span>Evaluaciones</span>
+            </a>
+            <a th:href="@{/asignaciones}" th:classappend="${vista == 'asignaciones'} ? 'active'" class="nav-item">
+                <span class="nav-icon">◉</span><span>Asignaciones</span>
+            </a>
+            <a th:href="@{/reportes}" th:classappend="${vista == 'reportes'} ? 'active'" class="nav-item">
+                <span class="nav-icon">★</span><span>Reportes</span>
+            </a>
+        </th:block>
+
+        <!-- Administrador de empresa -->
+        <th:block th:if="${sesion.esAdminEmpresa()}">
+            <span class="navigation-title">MI EMPRESA</span>
+            <a th:href="@{/seguimiento}" th:classappend="${vista == 'seguimiento'} ? 'active'" class="nav-item">
+                <span class="nav-icon">▦</span><span>Seguimiento</span>
+            </a>
+            <a th:href="@{/asignaciones}" th:classappend="${vista == 'asignaciones'} ? 'active'" class="nav-item">
+                <span class="nav-icon">◉</span><span>Asignaciones</span>
+            </a>
+        </th:block>
+
+        <!-- Estudiante -->
+        <th:block th:if="${sesion.esEstudiante()}">
+            <span class="navigation-title">CAPACITACIÓN</span>
+            <a th:href="@{/mis-capacitaciones}" th:classappend="${vista == 'mis-capacitaciones'} ? 'active'" class="nav-item">
+                <span class="nav-icon">▣</span><span>Mis capacitaciones</span>
+            </a>
+        </th:block>
+
+    </nav>
+
+    <div class="sidebar-footer">
+        <!-- Cierre de sesión por POST con token CSRF (th:action) -->
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="logout-button">
+                <span>⇥</span>
+                <span>Cerrar sesión</span>
+            </button>
+        </form>
+    </div>
+
+</aside>
+
+<header class="admin-topbar" th:fragment="barraSuperior(titulo)">
+    <div>
+        <span class="topbar-label" th:text="${sesion.areaPanel()}">ADMINISTRACIÓN</span>
+        <h1 th:text="${titulo}">Título</h1>
+    </div>
+    <div class="topbar-status">
+        <span class="status-dot"></span>
+        <span th:text="${sesion.rolEtiqueta()}">Administrador</span>
+    </div>
+</header>
+
+<!-- Mensajes después de guardar (flash), como partials/_flash.php -->
+<th:block th:fragment="mensajes">
+    <div class="admin-alert admin-alert-success" th:if="${mensaje}" th:text="${mensaje}"></div>
+    <div class="admin-alert admin-alert-error" th:if="${error}" th:text="${error}"></div>
+</th:block>
+
+</body>
+</html>

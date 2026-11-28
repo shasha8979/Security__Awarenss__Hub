@@ -25,7 +25,7 @@ Posteriormente, la plataforma podrá evolucionar con funcionalidades como cursos
 
 ## ☕ Versión Spring Boot (`backend/spring-boot`)
 
-La migración a **Java 21 + Spring Boot 4** (API REST + interfaz Vaadin + MariaDB) reemplaza al backend PHP.
+La migración a **Java 21 + Spring Boot 4** (API REST + páginas Thymeleaf con el CSS del frontend + MariaDB) reemplaza al backend PHP.
 
 | Módulo | Qué permite |
 |---|---|
@@ -43,7 +43,7 @@ La migración a **Java 21 + Spring Boot 4** (API REST + interfaz Vaadin + MariaD
 #   database/crear_usuario_app.sql        (cambia antes la clave)
 cd backend\spring-boot
 copy .env.example .env                  # escribe DB_PASSWORD
-.\mvnw.cmd clean test                   # 37 pruebas
+.\mvnw.cmd clean test                   # 49 pruebas
 .\mvnw.cmd spring-boot:run              # http://localhost:8080
 ```
 

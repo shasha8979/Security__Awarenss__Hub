@@ -16,6 +16,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
@@ -32,8 +33,11 @@ import java.util.Map;
  *
  * Todas las respuestas de error tienen el mismo formato JSON
  * (ErrorRespuestaDTO) y nunca exponen trazas ni detalles internos.
+ *
+ * Solo aplica a los @RestController (API): las páginas web manejan sus
+ * errores con mensajes en la propia vista.
  */
-@RestControllerAdvice
+@RestControllerAdvice(annotations = RestController.class)
 public class ManejadorGlobalErrores {
 
     private static final Logger log = LoggerFactory.getLogger(ManejadorGlobalErrores.class);

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<!-- Lista de cursos. Mismo HTML y CSS que frontend/Interface_Administrador/courses.php -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: cabeza('Cursos', 'courses_admin.css')}"></head>
+<body>
+<div class="admin-layout">
+
+    <aside th:replace="~{fragments/layout :: barraLateral('cursos')}"></aside>
+
+    <main class="admin-main">
+        <header th:replace="~{fragments/layout :: barraSuperior('Cursos')}"></header>
+
+        <section class="admin-content">
+            <div class="admin-view">
+
+                <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+                <div class="dashboard-heading">
+                    <div>
+                        <span class="section-label">GESTIÓN DE CURSOS</span>
+                        <h2>Cursos</h2>
+                        <p>Administra los cursos disponibles dentro de la plataforma.</p>
+                    </div>
+                    <a th:href="@{/cursos/nuevo}" class="admin-button">+ Nuevo curso</a>
+                </div>
+
+                <form th:action="@{/cursos}" method="get" class="users-toolbar">
+                    <div class="search-box">
+                        <span class="search-icon">⌕</span>
+                        <input type="search" name="search" th:value="${search}"
+                            placeholder="Buscar por título o descripción...">
+                    </div>
+                    <select class="users-filter" name="estado">
+                        <option value="todos" th:selected="${estado == 'todos'}">Todos los estados</option>
+                        <option value="activo" th:selected="${estado == 'activo'}">Activos</option>
+                        <option value="inactivo" th:selected="${estado == 'inactivo'}">Inactivos</option>
+                    </select>
+                    <button type="submit" class="admin-button">Buscar</button>
+                </form>
+
+                <div class="dashboard-card users-table-card">
+                    <div class="card-header">
+                        <div>
+                            <span class="section-label">CATÁLOGO</span>
+                            <h3>Cursos disponibles</h3>
+                        </div>
+                        <span class="card-period" th:text="${#lists.size(cursos)} + ' curso(s)'">0</span>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table class="users-table">
+                            <thead>
+                                <tr>
+                                    <th>CURSO</th>
+                                    <th>NIVEL</th>
+                                    <th>DURACIÓN</th>
+                                    <th>MÓDULOS</th>
+                                    <th>APROBACIÓN</th>
+                                    <th>ESTADO</th>
+                                    <th>ACCIONES</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(cursos)}">
+                                    <td colspan="7" class="loading-users">No se encontraron cursos.</td>
+                                </tr>
+                                <tr th:each="c : ${cursos}">
+                                    <td><strong th:text="${c.titulo}">Curso</strong></td>
+                                    <td th:text="${#strings.capitalize(c.nivelDificultad.name())}">Básico</td>
+                                    <td th:text="${c.duracion} + 'h'">3h</td>
+                                    <td th:text="${c.numeroModulos}">1</td>
+                                    <td th:text="${c.porcentajeAprobacion} + '%'">70%</td>
+                                    <td>
+                                        <span class="badge" th:classappend="'badge-' + ${c.estado.name()}"
+                                            th:text="${c.estado.name() == 'activo'} ? 'Activo' : 'Inactivo'">Activo</span>
+                                    </td>
+                                    <td class="table-actions">
+                                        <a th:href="@{/cursos/editar/{id}(id=${c.id})}" class="link-action">Editar</a>
+                                        <form th:action="@{/cursos/{id}/estado(id=${c.id})}" method="post">
+                                            <button type="submit" class="link-action"
+                                                th:text="${c.estado.name() == 'activo'} ? 'Desactivar' : 'Activar'">Desactivar</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="table-footer">
+                        <span th:text="${#lists.size(cursos)} + ' curso(s) en total'">0</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<!-- Asignaciones. Mismo HTML y CSS que frontend/Interface_Administrador/asignaciones.php -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: cabeza('Asignaciones', 'asignaciones.css')}"></head>
+<body>
+<div class="admin-layout">
+
+    <aside th:replace="~{fragments/layout :: barraLateral('asignaciones')}"></aside>
+
+    <main class="admin-main">
+        <header th:replace="~{fragments/layout :: barraSuperior('Asignaciones')}"></header>
+
+        <section class="admin-content">
+            <div class="admin-view">
+
+                <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+                <div class="dashboard-heading">
+                    <div>
+                        <span class="section-label">GESTIÓN DE CAPACITACIÓN</span>
+                        <h2>Asignaciones</h2>
+                        <p th:text="${sesion.esAdminEmpresa()} ? 'Asigna cursos y evaluaciones a los estudiantes de tu empresa.' : 'Asigna cursos y evaluaciones a los estudiantes de la plataforma.'">
+                            Asigna cursos y evaluaciones.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="dashboard-cards">
+                    <div class="dashboard-card">
+                        <div class="card-icon">✓</div>
+                        <div>
+                            <span>ASIGNACIONES</span>
+                            <strong th:text="${#lists.size(asignaciones)}">0</strong>
+                            <small>Asignaciones registradas</small>
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <div class="card-icon">◉</div>
+                        <div>
+                            <span>PENDIENTES / EN PROGRESO</span>
+                            <strong th:text="${#lists.size(asignaciones.?[estado.name() == 'pendiente'])} + ' / ' + ${#lists.size(asignaciones.?[estado.name() == 'progreso'])}">0 / 0</strong>
+                            <small>Capacitaciones sin terminar</small>
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <div class="card-icon">★</div>
+                        <div>
+                            <span>COMPLETADAS</span>
+                            <strong th:text="${#lists.size(asignaciones.?[estado.name() == 'completado'])}">0</strong>
+                            <small>Capacitaciones completadas</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NUEVA ASIGNACIÓN -->
+                <div class="dashboard-card users-table-card" style="padding:24px; margin-bottom:24px;">
+                    <div class="card-header">
+                        <div>
+                            <span class="section-label">NUEVA</span>
+                            <h3>Asignar capacitación</h3>
+                        </div>
+                    </div>
+
+                    <div class="admin-alert admin-alert-error" th:if="${errores['general']}" th:text="${errores['general']}"></div>
+
+                    <form th:action="@{/asignaciones/guardar}" method="post">
+                        <div class="form-group">
+                            <label for="asignacionUsuario">Estudiante</label>
+                            <select id="asignacionUsuario" name="usuarioId" required>
+                                <option value="">Selecciona un estudiante...</option>
+                                <option th:each="u : ${estudiantes}" th:value="${u.id}"
+                                    th:text="${u.nombres} + ' ' + ${u.apellidos} + ' — ' + ${u.correo}">Estudiante</option>
+                            </select>
+                            <small class="field-hint" th:if="${errores['usuarioId']}" th:text="${errores['usuarioId']}"></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="asignacionTipo">Tipo</label>
+                            <select id="asignacionTipo" name="tipo" required>
+                                <option value="curso">Curso</option>
+                                <option value="evaluacion">Evaluación</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="asignacionCurso">Curso (si el tipo es Curso)</label>
+                            <select id="asignacionCurso" name="cursoId">
+                                <option value="">—</option>
+                                <option th:each="c : ${cursos}" th:value="${c.id}" th:text="${c.titulo}">Curso</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="asignacionEvaluacion">Evaluación (si el tipo es Evaluación)</label>
+                            <select id="asignacionEvaluacion" name="evaluacionId">
+                                <option value="">—</option>
+                                <option th:each="e : ${evaluaciones}" th:value="${e.id}" th:text="${e.titulo}">Evaluación</option>
+                            </select>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="admin-button">Asignar</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- FILTROS -->
+                <form th:action="@{/asignaciones}" method="get" class="users-toolbar">
+                    <select class="users-filter" name="estado">
+                        <option value="">Todos los estados</option>
+                        <option value="pendiente" th:selected="${estado != null and estado.name() == 'pendiente'}">Pendientes</option>
+                        <option value="progreso" th:selected="${estado != null and estado.name() == 'progreso'}">En progreso</option>
+                        <option value="completado" th:selected="${estado != null and estado.name() == 'completado'}">Completadas</option>
+                    </select>
+                    <select class="users-filter" name="tipo">
+                        <option value="">Todos los tipos</option>
+                        <option value="curso" th:selected="${tipo != null and tipo.name() == 'curso'}">Cursos</option>
+                        <option value="evaluacion" th:selected="${tipo != null and tipo.name() == 'evaluacion'}">Evaluaciones</option>
+                    </select>
+                    <button type="submit" class="admin-button">Filtrar</button>
+                </form>
+
+                <div class="dashboard-card users-table-card">
+                    <div class="card-header">
+                        <div>
+                            <span class="section-label">DIRECTORIO</span>
+                            <h3>Asignaciones registradas</h3>
+                        </div>
+                        <span class="card-period" th:text="${#lists.size(asignaciones)} + ' registro(s)'">0</span>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table class="users-table">
+                            <thead>
+                                <tr>
+                                    <th>ESTUDIANTE</th>
+                                    <th>CAPACITACIÓN</th>
+                                    <th>TIPO</th>
+                                    <th>ESTADO</th>
+                                    <th>FECHA DE ASIGNACIÓN</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(asignaciones)}">
+                                    <td colspan="5" class="loading-users">Todavía no hay asignaciones.</td>
+                                </tr>
+                                <tr th:each="a : ${asignaciones}">
+                                    <td>
+                                        <strong th:text="${a.usuario.nombres} + ' ' + ${a.usuario.apellidos}">Estudiante</strong><br>
+                                        <small th:text="${a.usuario.correo}">correo</small>
+                                    </td>
+                                    <td th:text="${a.tipo.name() == 'curso'} ? ${a.curso.titulo} : ${a.evaluacion.titulo}">Curso</td>
+                                    <td th:text="${a.tipo.name() == 'curso'} ? 'Curso' : 'Evaluación'">Curso</td>
+                                    <td><span th:replace="~{fragments/estado :: asignacion(${a.estado})}"></span></td>
+                                    <td th:text="${a.fechaAsignacion != null} ? ${#temporals.format(a.fechaAsignacion, 'dd/MM/yyyy HH:mm')} : '—'">fecha</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>

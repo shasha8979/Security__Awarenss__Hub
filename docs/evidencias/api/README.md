@@ -62,7 +62,7 @@ Todas las respuestas de error usan el mismo formato:
 
 ```
 Controller (com.sah.controller)  → HTTP ⇄ DTO, @Valid, códigos de respuesta
-Service    (com.sah.service)     → reglas de negocio (las mismas que usa la interfaz Vaadin)
+Service    (com.sah.service)     → reglas de negocio (las mismas que usan las páginas Thymeleaf)
 Repository (com.sah.repository)  → Spring Data JPA → MariaDB
 DTO        (com.sah.dto)         → entrada validada / salida sin datos sensibles
 Exception  (com.sah.exception)   → ManejadorGlobalErrores (@RestControllerAdvice)
@@ -94,7 +94,7 @@ el código HTTP esperado.
 
 ## Pruebas automáticas (JUnit)
 
-`cd backend/spring-boot` y luego `.\mvnw.cmd clean test`: **37 pruebas, 0 fallos** (2026-11-27).
+`cd backend/spring-boot` y luego `.\mvnw.cmd clean test`: **49 pruebas, 0 fallos** (2026-11-27).
 Incluye pruebas de integración con MockMvc contra MariaDB y GreenMail (ver la Sesión 8).
 
 ## Resultado de la última ejecución (2026-11-26)
