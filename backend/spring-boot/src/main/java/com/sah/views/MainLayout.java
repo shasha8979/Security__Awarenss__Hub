@@ -123,6 +123,7 @@ public class MainLayout extends AppLayout {
                     crearOpcion("Empresas", VaadinIcon.BUILDING, EmpresaView.class),
                     crearOpcion("Cursos", VaadinIcon.BOOK, CursoView.class),
                     crearOpcion("Evaluaciones", VaadinIcon.CLIPBOARD_CHECK, EvaluacionView.class),
+                    crearOpcion("Resultados", VaadinIcon.TROPHY, ResultadosView.class),
                     crearOpcion("Asignaciones", VaadinIcon.TASKS, AsignacionView.class),
                     crearOpcion("Reportes", VaadinIcon.CHART, ReporteView.class)
             );
