@@ -1,5 +1,5 @@
 
-package com.sah.entity;
+package com.sah.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;

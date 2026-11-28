@@ -1,16 +1,19 @@
 
-package com.sah.entity;
+package com.sah.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "cursos")
-public class Curso {
+@Table(name = "evaluaciones")
+public class Evaluacion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
+    @Column(name = "curso_id", nullable = false)
+    private Integer cursoId;
 
     @Column(nullable = false, length = 150)
     private String titulo;
@@ -18,30 +21,24 @@ public class Curso {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String descripcion;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "nivel_dificultad", nullable = false)
-    private NivelDificultad nivelDificultad;
-
-    @Column(nullable = false)
-    private Integer duracion;
-
-    @Column(name = "numero_modulos", nullable = false)
-    private Integer numeroModulos;
-
     @Column(name = "porcentaje_aprobacion", nullable = false)
     private Integer porcentajeAprobacion;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private EstadoCurso estado;
+    private EstadoEvaluacion estado;
 
-    @Column(name = "fecha_creacion",
-            insertable = false,
-            updatable = false)
+    @Column(
+        name = "fecha_creacion",
+        insertable = false,
+        updatable = false
+    )
     private LocalDateTime fechaCreacion;
 
-    public Curso() {
+    public Evaluacion() {
     }
+
+    // Getters y setters
 
     public Integer getId() {
         return id;
@@ -49,6 +46,14 @@ public class Curso {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public Integer getCursoId() {
+        return cursoId;
+    }
+
+    public void setCursoId(Integer cursoId) {
+        this.cursoId = cursoId;
     }
 
     public String getTitulo() {
@@ -67,30 +72,6 @@ public class Curso {
         this.descripcion = descripcion;
     }
 
-    public NivelDificultad getNivelDificultad() {
-        return nivelDificultad;
-    }
-
-    public void setNivelDificultad(NivelDificultad nivelDificultad) {
-        this.nivelDificultad = nivelDificultad;
-    }
-
-    public Integer getDuracion() {
-        return duracion;
-    }
-
-    public void setDuracion(Integer duracion) {
-        this.duracion = duracion;
-    }
-
-    public Integer getNumeroModulos() {
-        return numeroModulos;
-    }
-
-    public void setNumeroModulos(Integer numeroModulos) {
-        this.numeroModulos = numeroModulos;
-    }
-
     public Integer getPorcentajeAprobacion() {
         return porcentajeAprobacion;
     }
@@ -99,11 +80,11 @@ public class Curso {
         this.porcentajeAprobacion = porcentajeAprobacion;
     }
 
-    public EstadoCurso getEstado() {
+    public EstadoEvaluacion getEstado() {
         return estado;
     }
 
-    public void setEstado(EstadoCurso estado) {
+    public void setEstado(EstadoEvaluacion estado) {
         this.estado = estado;
     }
 
@@ -111,11 +92,8 @@ public class Curso {
         return fechaCreacion;
     }
 
-    public enum NivelDificultad {
-        basico, intermedio, avanzado
-    }
-
-    public enum EstadoCurso {
-        activo, inactivo
+    public enum EstadoEvaluacion {
+        activo,
+        inactivo
     }
 }

@@ -1,0 +1,917 @@
+{
+  "info": {
+    "name": "SAH - API REST",
+    "description": "Pruebas de la API REST de Security Awareness Hub (Guías 4, 7 y 8). Ejecutar las peticiones en orden dentro de cada carpeta. El nombre de cada petición indica el código HTTP esperado. Antes de empezar: en la autenticación de la colección (Basic) escribe la contraseña del administrador en lugar de {{contrasena}}, o crea esa variable en un entorno.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "basic",
+    "basic": [
+      {
+        "key": "username",
+        "value": "admin@sah.com",
+        "type": "string"
+      },
+      {
+        "key": "password",
+        "value": "{{contrasena}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "1 Cursos",
+      "item": [
+        {
+          "name": "GET todos los cursos (200)",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/cursos"
+          }
+        },
+        {
+          "name": "GET curso 1 (200)",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/cursos/1"
+          }
+        },
+        {
+          "name": "GET curso inexistente (404)",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/cursos/9999"
+          }
+        },
+        {
+          "name": "GET id no numérico (400)",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/cursos/abc"
+          }
+        },
+        {
+          "name": "POST curso válido (201 la primera vez, 409 si ya existe)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/cursos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Navegación segura\",\n  \"descripcion\": \"Buenas prácticas para identificar sitios fraudulentos y descargas peligrosas.\",\n  \"nivelDificultad\": \"basico\",\n  \"duracion\": 2,\n  \"numeroModulos\": 2,\n  \"porcentajeAprobacion\": 70\n}"
+            }
+          }
+        },
+        {
+          "name": "POST datos inválidos (400 con errores por campo)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/cursos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"\",\n  \"descripcion\": \"x\",\n  \"nivelDificultad\": \"basico\",\n  \"duracion\": 0,\n  \"numeroModulos\": 1,\n  \"porcentajeAprobacion\": 150\n}"
+            }
+          }
+        },
+        {
+          "name": "POST JSON mal formado (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/cursos",
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"titulo\": "
+            }
+          }
+        },
+        {
+          "name": "POST con text/plain (415)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/plain"
+              }
+            ],
+            "url": "http://localhost:8080/api/cursos",
+            "body": {
+              "mode": "raw",
+              "raw": "hola"
+            }
+          }
+        },
+        {
+          "name": "PUT curso 3 (200)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/cursos/3",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Ingeniería social y suplantación\",\n  \"descripcion\": \"Reconocer técnicas de manipulación como vishing, pretexting y suplantación de identidad. Incluye casos prácticos.\",\n  \"nivelDificultad\": \"intermedio\",\n  \"duracion\": 5,\n  \"numeroModulos\": 3,\n  \"porcentajeAprobacion\": 75\n}"
+            }
+          }
+        },
+        {
+          "name": "PUT curso inexistente (404)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/cursos/9999",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"No existe\",\n  \"descripcion\": \"x\",\n  \"nivelDificultad\": \"basico\",\n  \"duracion\": 1,\n  \"numeroModulos\": 1,\n  \"porcentajeAprobacion\": 70\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH desactivar curso 3 (200)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/cursos/3/estado",
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"estado\": \"inactivo\" }"
+            }
+          }
+        },
+        {
+          "name": "PATCH reactivar curso 3 (200)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/cursos/3/estado",
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"estado\": \"activo\" }"
+            }
+          }
+        },
+        {
+          "name": "DELETE curso (405)",
+          "request": {
+            "method": "DELETE",
+            "url": "http://localhost:8080/api/cursos/3"
+          }
+        },
+        {
+          "name": "GET sin credenciales (401)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "url": "http://localhost:8080/api/cursos"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2 Empresas",
+      "item": [
+        {
+          "name": "GET todas las empresas (200)",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/empresas"
+          }
+        },
+        {
+          "name": "GET empresa 1 (200)",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/empresas/1"
+          }
+        },
+        {
+          "name": "GET empresa inexistente (404)",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/empresas/9999"
+          }
+        },
+        {
+          "name": "POST NIT repetido (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/empresas",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Otra empresa\",\n  \"nit\": \"900123456-7\",\n  \"correo\": \"otra@empresa.test\",\n  \"tipo\": \"privada\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST datos inválidos (400 con errores por campo)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/empresas",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"\",\n  \"nit\": \"ABC\",\n  \"correo\": \"no-es-correo\",\n  \"tipo\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "PUT empresa 2 (200)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/empresas/2",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"SecureCorp Pruebas API\",\n  \"nit\": \"900123456-7\",\n  \"correo\": \"seguridad@securecorp.test\",\n  \"telefono\": \"+57 601 555 0199\",\n  \"direccion\": \"Calle 100 # 10-20, Bogotá\",\n  \"tipo\": \"mixta\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH estado no válido (400)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/empresas/2/estado",
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"estado\": \"borrado\" }"
+            }
+          }
+        },
+        {
+          "name": "DELETE empresa (405)",
+          "request": {
+            "method": "DELETE",
+            "url": "http://localhost:8080/api/empresas/2"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3 Usuarios y permisos",
+      "item": [
+        {
+          "name": "GET todos los usuarios, sin contraseñas (200)",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/usuarios"
+          }
+        },
+        {
+          "name": "GET estudiantes ?rol=empleado (200)",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/usuarios?rol=empleado"
+          }
+        },
+        {
+          "name": "GET usuario inexistente (404)",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/usuarios/9999"
+          }
+        },
+        {
+          "name": "POST correo repetido (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/usuarios",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombres\": \"Repetido\",\n  \"apellidos\": \"Prueba\",\n  \"correo\": \"admin@sah.com\",\n  \"password\": \"ClaveSegura1\",\n  \"rol\": \"admin\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST datos inválidos (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/usuarios",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombres\": \"\",\n  \"apellidos\": \"X\",\n  \"correo\": \"correo-malo\",\n  \"password\": \"123\",\n  \"rol\": \"superadmin\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST estudiante sin empresa (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/usuarios",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombres\": \"Sin\",\n  \"apellidos\": \"Empresa\",\n  \"correo\": \"sin.empresa@sah-pruebas.com\",\n  \"password\": \"ClaveSegura1\",\n  \"rol\": \"empleado\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH admin no puede desactivarse (400)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/usuarios/1/estado",
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"estado\": \"inactivo\" }"
+            }
+          }
+        },
+        {
+          "name": "PATCH reactivar estudiante de prueba 5 (200)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/usuarios/5/estado",
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"estado\": \"activo\" }"
+            }
+          }
+        },
+        {
+          "name": "Estudiante: GET cursos (200)",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "estudiante.api@sah-pruebas.com",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "Prueba-Api-2026",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": "http://localhost:8080/api/cursos"
+          }
+        },
+        {
+          "name": "Estudiante: GET usuarios (403)",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "estudiante.api@sah-pruebas.com",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "Prueba-Api-2026",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": "http://localhost:8080/api/usuarios"
+          }
+        },
+        {
+          "name": "PATCH desactivar estudiante de prueba 5 (200)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/usuarios/5/estado",
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"estado\": \"inactivo\" }"
+            }
+          }
+        },
+        {
+          "name": "Estudiante inactivo: GET cursos (401)",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "estudiante.api@sah-pruebas.com",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "Prueba-Api-2026",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": "http://localhost:8080/api/cursos"
+          }
+        }
+      ]
+    },
+    {
+      "name": "4 Evaluaciones",
+      "item": [
+        {
+          "name": "GET todas las evaluaciones (200)",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/evaluaciones"
+          }
+        },
+        {
+          "name": "GET evaluaciones del curso 1 (200)",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/evaluaciones?cursoId=1"
+          }
+        },
+        {
+          "name": "GET evaluación 1 (200)",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/evaluaciones/1"
+          }
+        },
+        {
+          "name": "GET evaluación inexistente (404)",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/evaluaciones/9999"
+          }
+        },
+        {
+          "name": "POST evaluación válida (201 la primera vez, 409 si ya existe)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/evaluaciones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cursoId\": 2,\n  \"titulo\": \"Evaluación de contraseñas seguras\",\n  \"descripcion\": \"Comprueba la creación y gestión de contraseñas robustas y el uso de gestores.\",\n  \"porcentajeAprobacion\": 70\n}"
+            }
+          }
+        },
+        {
+          "name": "POST curso inexistente (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/evaluaciones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cursoId\": 9999,\n  \"titulo\": \"Sin curso\",\n  \"descripcion\": \"x\",\n  \"porcentajeAprobacion\": 70\n}"
+            }
+          }
+        },
+        {
+          "name": "PUT evaluación 1 (200)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/evaluaciones/1",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cursoId\": 1,\n  \"titulo\": \"Evaluación de fundamentos\",\n  \"descripcion\": \"Preguntas sobre confidencialidad, integridad y disponibilidad. Incluye casos.\",\n  \"porcentajeAprobacion\": 80\n}"
+            }
+          }
+        },
+        {
+          "name": "DELETE evaluación (405)",
+          "request": {
+            "method": "DELETE",
+            "url": "http://localhost:8080/api/evaluaciones/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "5 Carga masiva CSV (Sesión 8)",
+      "description": "En Body > form-data, el campo archivo (tipo File) debe apuntar a docs/evidencias/api/usuarios-ejemplo.csv. Responde 200 con el resumen; las filas con error aparecen en errores con su número de línea.",
+      "item": [
+        {
+          "name": "POST CSV de ejemplo (200 con resumen y errores por línea)",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/usuarios/carga-csv",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "archivo",
+                  "type": "file",
+                  "src": "usuarios-ejemplo.csv"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST CSV sin credenciales (401)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "url": "http://localhost:8080/api/usuarios/carga-csv",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "archivo",
+                  "type": "file",
+                  "src": "usuarios-ejemplo.csv"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST sin campo archivo (400)",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/usuarios/carga-csv",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "otro",
+                  "type": "text",
+                  "value": "x"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST JSON en lugar de multipart (415)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/usuarios/carga-csv",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6 Asignaciones y avance del estudiante",
+      "description": "Crea las variables correoEstudiante y claveEstudiante con un estudiante ACTIVO que tenga una asignación, y asignacionId con su id (ver GET como estudiante).",
+      "item": [
+        {
+          "name": "GET asignaciones como admin (200, todas)",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/asignaciones"
+          }
+        },
+        {
+          "name": "GET asignaciones como estudiante (200, solo las suyas)",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{correoEstudiante}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{claveEstudiante}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": "http://localhost:8080/api/asignaciones"
+          }
+        },
+        {
+          "name": "PATCH completar sin iniciar (400)",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{correoEstudiante}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{claveEstudiante}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/asignaciones/{{asignacionId}}/avance",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"completado\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH iniciar (200, estado progreso)",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{correoEstudiante}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{claveEstudiante}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/asignaciones/{{asignacionId}}/avance",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"progreso\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH volver a pendiente (400)",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{correoEstudiante}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{claveEstudiante}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/asignaciones/{{asignacionId}}/avance",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"pendiente\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH completar (200, estado completado)",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{correoEstudiante}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{claveEstudiante}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/asignaciones/{{asignacionId}}/avance",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"completado\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH estado inexistente (400)",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{correoEstudiante}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{claveEstudiante}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/asignaciones/{{asignacionId}}/avance",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"terminado\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH como admin (403)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/asignaciones/{{asignacionId}}/avance",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"progreso\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH asignación inexistente (404)",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{correoEstudiante}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{claveEstudiante}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/asignaciones/999999/avance",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"progreso\"\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,151 @@
+/* =========================================================
+   SECURITY AWARENESS HUB — Tema de la interfaz Vaadin
+
+   Paleta tomada del frontend original:
+   frontend/Interface_Administrador/css/dashboard.css
+   frontend/authentication/css/login.css
+
+   Todos los colores de la aplicacion salen de este archivo:
+   las vistas Java usan las variables (var(--...)), nunca colores fijos.
+========================================================= */
+
+:root {
+    /* Paleta SAH (igual que dashboard.css) */
+    --sah-fondo: #020605;
+    --sah-lateral: #050a08;
+    --sah-superficie: #07100d;
+    --sah-superficie-clara: #0b1512;
+    --sah-borde: rgba(255, 255, 255, 0.07);
+    --sah-borde-claro: rgba(255, 255, 255, 0.11);
+    --sah-borde-verde: rgba(67, 229, 138, 0.25);
+
+    --sah-texto: #f0f5f2;
+    --sah-texto-secundario: #a0aca7;
+    --sah-texto-tenue: #63706b;
+
+    --sah-verde: #43e58a;
+    --sah-verde-claro: #72f1a9;
+    --sah-verde-oscuro: #20b866;
+    --sah-peligro: #ef6262;
+    --sah-info: #38bdf8;
+
+    --sah-aviso-fondo: rgba(245, 158, 11, 0.10);
+    --sah-aviso-borde: rgba(245, 158, 11, 0.35);
+    --sah-aviso-texto: #fbbf24;
+
+    --sah-sombra: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+/* Se asignan los colores SAH a las variables de Lumo (tema base de
+   Vaadin): botones, campos, tablas y menus toman el negro y verde. */
+html,
+html[theme~="dark"] {
+    --lumo-base-color: var(--sah-superficie);
+
+    --lumo-body-text-color: var(--sah-texto);
+    --lumo-header-text-color: #ffffff;
+    --lumo-secondary-text-color: var(--sah-texto-secundario);
+    --lumo-tertiary-text-color: var(--sah-texto-tenue);
+    --lumo-disabled-text-color: rgba(240, 245, 242, 0.30);
+
+    --lumo-primary-color: var(--sah-verde);
+    --lumo-primary-color-50pct: rgba(67, 229, 138, 0.50);
+    --lumo-primary-color-10pct: rgba(67, 229, 138, 0.10);
+    --lumo-primary-text-color: var(--sah-verde);
+    --lumo-primary-contrast-color: #02140a;
+
+    --lumo-success-color: var(--sah-verde-oscuro);
+    --lumo-success-text-color: var(--sah-verde);
+    --lumo-success-contrast-color: #02140a;
+
+    --lumo-error-color: var(--sah-peligro);
+    --lumo-error-color-10pct: rgba(239, 98, 98, 0.10);
+    --lumo-error-text-color: #f58a8a;
+
+    --lumo-contrast-5pct: rgba(255, 255, 255, 0.04);
+    --lumo-contrast-10pct: rgba(255, 255, 255, 0.07);
+    --lumo-contrast-20pct: rgba(255, 255, 255, 0.11);
+    --lumo-contrast-30pct: rgba(255, 255, 255, 0.20);
+
+    --lumo-border-radius-m: 10px;
+    --lumo-border-radius-l: 14px;
+
+    color-scheme: dark;
+    background: var(--sah-fondo);
+}
+
+body {
+    background: var(--sah-fondo);
+    color: var(--sah-texto);
+}
+
+/* ---------- Estructura: barra superior y menu lateral ---------- */
+
+vaadin-app-layout {
+    background: var(--sah-fondo);
+}
+
+vaadin-app-layout::part(navbar) {
+    background: var(--sah-lateral);
+    border-bottom: 1px solid var(--sah-borde-verde);
+    box-shadow: none;
+}
+
+vaadin-app-layout::part(drawer) {
+    background: var(--sah-lateral);
+    border-right: 1px solid var(--sah-borde);
+}
+
+/* Opcion del menu activa: verde, como en el panel PHP */
+vaadin-app-layout a[highlight] > vaadin-horizontal-layout {
+    background: var(--lumo-primary-color-10pct);
+    box-shadow: inset 3px 0 0 var(--sah-verde);
+}
+
+vaadin-app-layout a {
+    text-decoration: none;
+}
+
+vaadin-app-layout a:hover > vaadin-horizontal-layout {
+    background: var(--lumo-contrast-5pct);
+}
+
+/* ---------- Tablas ---------- */
+
+vaadin-grid {
+    --vaadin-grid-cell-background: var(--sah-superficie);
+    background: var(--sah-superficie);
+    border: 1px solid var(--sah-borde);
+    border-radius: var(--lumo-border-radius-m);
+}
+
+vaadin-grid::part(header-cell) {
+    background: var(--sah-superficie-clara);
+    color: var(--sah-texto-secundario);
+    font-weight: 600;
+}
+
+vaadin-grid::part(row):hover {
+    background: var(--lumo-primary-color-10pct);
+}
+
+/* ---------- Botones: el principal en verde con texto oscuro ---------- */
+
+vaadin-button[theme~="primary"] {
+    background: var(--sah-verde);
+    color: var(--lumo-primary-contrast-color);
+    font-weight: 700;
+}
+
+vaadin-button[theme~="primary"]:hover {
+    background: var(--sah-verde-claro);
+}
+
+/* ---------- Pagina de inicio de sesion ---------- */
+
+vaadin-login-form-wrapper {
+    background: var(--sah-superficie);
+    border: 1px solid var(--sah-borde-verde);
+    border-radius: var(--lumo-border-radius-l);
+    box-shadow: var(--sah-sombra);
+}

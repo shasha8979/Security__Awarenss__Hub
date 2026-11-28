@@ -1,5 +1,5 @@
 
-package com.sah.entity;
+package com.sah.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -18,6 +18,10 @@ public class Usuario {
     @Column(name = "apellidos", nullable = false, length = 100)
     private String apellidos;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "empresa_id")
+    private Empresa empresa;
+
     @Column(name = "correo", nullable = false, unique = true, length = 150)
     private String correo;
 
@@ -30,7 +34,9 @@ public class Usuario {
     @Column(name = "estado", nullable = false)
     private String estado;
 
-    @Column(name = "fecha_registro", nullable = false)
+    @Column(name = "fecha_registro",
+            insertable = false,
+            updatable = false)
     private LocalDateTime fechaRegistro;
 
     public Usuario() {
@@ -58,6 +64,14 @@ public class Usuario {
 
     public void setApellidos(String apellidos) {
         this.apellidos = apellidos;
+    }
+
+    public Empresa getEmpresa() {
+        return empresa;
+    }
+
+    public void setEmpresa(Empresa empresa) {
+        this.empresa = empresa;
     }
 
     public String getCorreo() {

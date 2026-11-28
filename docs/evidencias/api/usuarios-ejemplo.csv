@@ -1,0 +1,9 @@
+﻿nombres;apellidos;correo;nit_empresa;rol
+Laura;Martínez;laura.csv@sah-pruebas.com;900123456-7;empleado
+Carlos;"Ruiz; Díaz";carlos.csv@sah-pruebas.com;900123456-7;
+Marta;Sánchez;marta.csv@sah-pruebas.com;900123456-7;admin_empresa
+;SinNombre;sin.nombre@sah-pruebas.com;900123456-7;empleado
+Pedro;Correo;correo-invalido;900123456-7;empleado
+Laura;Repetida;laura.csv@sah-pruebas.com;900123456-7;empleado
+Raul;Admin;raul.csv@sah-pruebas.com;900123456-7;admin
+Sara;Nit;sara.csv@sah-pruebas.com;000000000-0;empleado

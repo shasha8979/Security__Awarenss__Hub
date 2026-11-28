@@ -1,8 +1,8 @@
 
 package com.sah.views;
 
-import com.sah.entity.Evaluacion;
-import com.sah.entity.Curso;
+import com.sah.model.Evaluacion;
+import com.sah.model.Curso;
 import com.sah.repository.EvaluacionRepository;
 import com.sah.repository.CursoRepository;
 
@@ -22,10 +22,10 @@ import com.vaadin.flow.router.Route;
 
 import jakarta.annotation.security.RolesAllowed;
 
-@Route("evaluaciones")
+@Route(value = "evaluaciones", layout = MainLayout.class)
 @PageTitle("Evaluaciones | Security Awareness Hub")
-@RolesAllowed("ROLE_ADMIN")
-public class EvaluacionView extends MainLayout  {
+@RolesAllowed("ADMIN")
+public class EvaluacionView extends VerticalLayout {
 
     private final EvaluacionRepository evaluacionRepository;
     private final CursoRepository cursoRepository;
@@ -49,22 +49,22 @@ public class EvaluacionView extends MainLayout  {
 
         this.evaluacionRepository = evaluacionRepository;
         this.cursoRepository = cursoRepository;
-crearFormulario();
-configurarTabla();
-actualizarTabla();
 
-VerticalLayout contenido = new VerticalLayout(
-        new H1("Gestión de evaluaciones"),
-        new Paragraph("Administra las evaluaciones de los cursos."),
-        crearFormularioLayout(),
-        grid
-);
+        crearFormulario();
+        configurarTabla();
+        actualizarTabla();
 
-contenido.setSizeFull();
-contenido.setPadding(true);
-contenido.setSpacing(true);
+        setSizeFull();
+        setPadding(true);
+        setSpacing(true);
 
-setContent(contenido);
+        // El menu y el encabezado los aporta MainLayout (layout de la ruta)
+        add(
+                new H1("Gestión de evaluaciones"),
+                new Paragraph("Administra las evaluaciones de los cursos."),
+                crearFormularioLayout(),
+                grid
+        );
     }
 
     private void crearFormulario() {
