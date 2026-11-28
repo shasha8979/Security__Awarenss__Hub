@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<!-- Seguimiento del administrador de empresa. Componentes de dashboard.css y reportes.css -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: cabeza('Seguimiento', 'reportes.css')}"></head>
+<body>
+<div class="admin-layout">
+
+    <aside th:replace="~{fragments/layout :: barraLateral('seguimiento')}"></aside>
+
+    <main class="admin-main">
+        <header th:replace="~{fragments/layout :: barraSuperior('Seguimiento de estudiantes')}"></header>
+
+        <section class="admin-content">
+            <div class="admin-view">
+
+                <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+                <div class="dashboard-heading">
+                    <div>
+                        <span class="section-label" th:text="${sesion.empresa() != null} ? ${#strings.toUpperCase(sesion.empresa())} : 'MI EMPRESA'">MI EMPRESA</span>
+                        <h2>Seguimiento</h2>
+                        <p>Avance de capacitación de los estudiantes de tu empresa.</p>
+                    </div>
+                    <a th:href="@{/asignaciones}" class="admin-button">Asignar capacitaciones</a>
+                </div>
+
+                <div class="admin-alert admin-alert-error" th:if="${sesion.empresaId() == null}">
+                    Tu cuenta no tiene una empresa asignada. Comunícate con el administrador.
+                </div>
+
+                <div class="dashboard-cards">
+                    <div class="dashboard-card">
+                        <div class="card-icon">♙</div>
+                        <div>
+                            <span>ESTUDIANTES</span>
+                            <strong th:text="${#lists.size(estudiantes)}">0</strong>
+                            <small>Estudiantes de la empresa</small>
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <div class="card-icon">◉</div>
+                        <div>
+                            <span>ASIGNACIONES</span>
+                            <strong th:text="${#aggregates.sum(estudiantes.![asignaciones()]) ?: 0}">0</strong>
+                            <small>Cursos y evaluaciones asignados</small>
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <div class="card-icon">★</div>
+                        <div>
+                            <span>COMPLETADAS</span>
+                            <strong th:text="${#aggregates.sum(estudiantes.![completadas()]) ?: 0}">0</strong>
+                            <small>Capacitaciones completadas</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-panel report-results">
+                    <div class="panel-header">
+                        <div>
+                            <span class="section-label">ESTUDIANTES</span>
+                            <h3>Avance por estudiante</h3>
+                        </div>
+                        <span class="card-period" th:text="${#lists.size(estudiantes)} + ' estudiante(s)'">0</span>
+                    </div>
+
+                    <div class="empty-state" th:if="${#lists.isEmpty(estudiantes)}">
+                        <div class="empty-icon">▤</div>
+                        <p>Tu empresa todavía no tiene estudiantes registrados.</p>
+                    </div>
+
+                    <div class="table-wrapper" th:unless="${#lists.isEmpty(estudiantes)}">
+                        <table class="users-table reports-table">
+                            <thead>
+                                <tr>
+                                    <th>ESTUDIANTE</th>
+                                    <th>ESTADO</th>
+                                    <th>ASIGNADAS</th>
+                                    <th>PENDIENTES</th>
+                                    <th>EN PROGRESO</th>
+                                    <th>COMPLETADAS</th>
+                                    <th>% COMPLETADO</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="e : ${estudiantes}"
+                                    th:with="pct=${e.asignaciones() == 0 ? 0 : e.completadas() * 100 / e.asignaciones()}">
+                                    <td>
+                                        <strong th:text="${e.nombre()}">Nombre</strong><br>
+                                        <small th:text="${e.correo()}">correo</small>
+                                    </td>
+                                    <td><span class="badge" th:classappend="${e.estado() == 'Activo'} ? 'badge-activo' : 'badge-inactivo'"
+                                        th:text="${e.estado()}">Activo</span></td>
+                                    <td th:text="${e.asignaciones()}">0</td>
+                                    <td th:text="${e.pendientes()}">0</td>
+                                    <td th:text="${e.enProgreso()}">0</td>
+                                    <td th:text="${e.completadas()}">0</td>
+                                    <td>
+                                        <div class="progress-container" th:if="${e.asignaciones() > 0}">
+                                            <div class="progress-bar"><span th:style="'width:' + ${pct} + '%'"></span></div>
+                                            <span th:text="${pct} + '%'">0%</span>
+                                        </div>
+                                        <small th:if="${e.asignaciones() == 0}">Sin asignaciones</small>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>

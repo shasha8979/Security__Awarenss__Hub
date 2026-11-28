@@ -14,7 +14,7 @@
 | 7 | Credenciales en variables de entorno, usuario de BD propio | Implementado y probado (2026-11-27) | `database/crear_usuario_app.sql`, `.env.example` |
 | 8 | Envío de correos y carga masiva por CSV | Implementado y probado con pruebas automáticas (2026-11-27) | `docs/evidencias/sesion-8-correo-csv.md` |
 
-| Módulo | API REST | Interfaz Vaadin | Pruebas automáticas |
+| Módulo | API REST | Página Thymeleaf | Pruebas automáticas |
 |---|---|---|---|
 | Cursos | Sí | Sí | `CursoServiceTest` |
 | Empresas | Sí | Sí | Scripts y Postman |
@@ -27,7 +27,7 @@
 
 - Preguntas y opciones de las evaluaciones: las tablas `preguntas` y `opciones` existen, pero no tienen entidad ni pantalla. Para guardar la calificación del estudiante hay que añadir una columna, así que antes se propondrá la migración.
 - Exportación de reportes (PDF/Excel).
-- El `frontend/` HTML+JS del PHP todavía no consume la API de Spring Boot. La interfaz en uso es Vaadin.
+- Las páginas Thymeleaf reproducen el panel PHP con su mismo CSS. La landing page (`frontend/Landing_Page`) y el registro público siguen solo en PHP.
 
 ## 2. Hallazgos del código PHP original
 
@@ -42,13 +42,13 @@ Análisis del ejercicio complementario "Gestor de Tareas" (Thymeleaf + login): [
 
 | # | Fecha | Decisión | Guía / PHP decía | Motivo |
 |---|---|---|---|---|
-| D1 | 2026-11 | Interfaz con **Vaadin** además de la API REST | Las guías solo hacen API REST | El producto se evalúa con interfaz (ítem 1 de la lista). Vaadin usa los mismos servicios que la API, así las reglas no se duplican |
+| D1 | 2026-11 | Interfaz con **Vaadin** además de la API REST (**reemplazada por Thymeleaf, ver D18**) | Las guías solo hacen API REST | El producto se evalúa con interfaz (ítem 1 de la lista). Vaadin usa los mismos servicios que la API, así las reglas no se duplican |
 | D2 | 2026-11 | Paquete base `com.sah`, organizado **por capa** (`controller`, `service`…) | `com.securityhub`, por módulo | Ya estaba construido así y probado. Renombrar todo no cambia el comportamiento y arriesga la entrega |
 | D3 | 2026-11 | `ddl-auto=validate` | `update` (solo para aprender) | La BD tiene datos reales; `validate` impide que Hibernate altere tablas. Los cambios de esquema van en `database/migracion_*.sql` |
 | D4 | 2026-11 | **MariaDB de XAMPP** | MySQL 8 en Docker | Es el motor del entorno del SENA y del PHP original; no hay Docker en el equipo. El SQL es compatible |
 | D5 | 2026-11 | Ids `Integer` | `Long` desde la Sesión 6 | Las columnas son `INT` en el SQL original; con `validate`, `Long` exige cambiar el esquema |
 | D6 | 2026-11 | Roles `admin`, `admin_empresa`, `empleado` (se muestra "Estudiante") | `USER` y `ADMIN` | Son los roles del PHP y de la BD. `admin_empresa` hace falta para el seguimiento por empresa |
-| D7 | 2026-11 | Dos cadenas de seguridad: HTTP Basic sin sesión para `/api/**` y formulario de login para Vaadin | Solo HTTP Basic | La interfaz web necesita sesión y CSRF; la API no |
+| D7 | 2026-11 | Dos cadenas de seguridad: HTTP Basic sin sesión para `/api/**` y formulario de login para las páginas | Solo HTTP Basic | La interfaz web necesita sesión y CSRF; la API no |
 | D8 | 2026-11 | Sin `DELETE` (405); se desactiva con `PATCH /{id}/estado` | `DELETE` → 204 | Las claves foráneas `ON DELETE RESTRICT` protegen el historial de asignaciones |
 | D9 | 2026-11 | Relaciones JPA (`@ManyToOne`) con `@EntityGraph` | La guía 6 no trae relaciones | SAH las necesita (usuario–empresa, asignación–curso). `@EntityGraph` evita consultas N+1 |
 | D10 | 2026-11-27 | Usuario de BD `sah_app` (solo `SELECT/INSERT/UPDATE/DELETE`) y `.env` local importado con `spring.config.import` | Variables de entorno | Igual que la guía, más un `.env` ignorado por Git para no tener que exportar variables en cada terminal |
@@ -58,7 +58,10 @@ Análisis del ejercicio complementario "Gestor de Tareas" (Thymeleaf + login): [
 | D14 | 2026-11-27 | Pruebas automáticas JUnit 5 + Mockito + MockMvc + GreenMail | Solo Postman | Ítem 8 de la lista: pruebas funcionales y de integración documentadas y repetibles |
 | D15 | 2026-11-27 | Avance del estudiante paso a paso (`pendiente → progreso → completado`) | El PHP no lo tenía | Sin avance, los reportes de la empresa siempre marcaban 0 % |
 | D16 | 2026-11-27 | Datos iniciales con `CommandLineRunner` (`config/DatosIniciales`): crea el admin solo si no hay ninguno activo, con `ADMIN_CORREO`/`ADMIN_PASSWORD` | Guía 6 y ejercicio Gestor de Tareas: `DataInitializer` con claves fijas | Mismo propósito que `crear_admin.php`, sin contraseñas en el código ni duplicar el admin en cada arranque |
-| D17 | 2026-11-27 | Decisión "API REST, páginas o ambas": **ambas**, con Vaadin en lugar de Thymeleaf | Ejercicio Gestor de Tareas (Thymeleaf) | Ver `gestor-tareas-analisis.md`. Las dos cadenas de seguridad que propone el ejercicio ya estaban hechas |
+| D17 | 2026-11-27 | Decisión "API REST, páginas o ambas": **ambas** (aplicada con Thymeleaf en D18) | Ejercicio Gestor de Tareas (Thymeleaf) | Ver `gestor-tareas-analisis.md`. Las dos cadenas de seguridad que propone el ejercicio ya estaban hechas |
+| D18 | 2026-11-28 | **Interfaz con Thymeleaf** siguiendo el orden del ejercicio Gestor de Tareas (`config/`, `controller/` con `@Controller` y `LoginController`, `templates/`). Se retira Vaadin. Las plantillas usan el HTML y **los mismos archivos CSS de `frontend/`**: Maven los copia a `static/` al compilar | D1 (Vaadin) | El equipo pidió que las pantallas en Java usen el CSS del frontend; Vaadin genera su propio HTML y no puede. Thymeleaf es lo que enseña el ejercicio |
+| D19 | 2026-11-28 | Los formularios web enlazan el **DTO** con `@Valid` (no la entidad) y llaman al servicio | Ejercicio: entidad con `@ModelAttribute` y repositorio en el controlador | Reglas de las sesiones 5 y 7; las mismas validaciones que la API |
+| D20 | 2026-11-28 | Exportación de reportes a CSV (`/reportes/exportar`) | `export_reporte.php` | Recupera una función del PHP que faltaba en Java |
 
 ## 4. Cómo ejecutar el proyecto
 

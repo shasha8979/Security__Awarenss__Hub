@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Locale;
 
 @Service
 @Transactional
@@ -40,6 +41,33 @@ public class UsuarioService {
     @Transactional(readOnly = true)
     public List<Usuario> listarUsuarios() {
         return usuarioRepository.findAll();
+    }
+
+    /**
+     * Búsqueda de la página de usuarios: texto en nombres, apellidos o
+     * correo y estado ("activo", "inactivo"; vacío o "todos" = sin filtro).
+     */
+    @Transactional(readOnly = true)
+    public List<Usuario> buscarUsuarios(String texto, String estado) {
+        String buscado = texto == null ? "" : texto.trim().toLowerCase(Locale.ROOT);
+
+        return listarUsuarios().stream()
+                .filter(u -> estado == null || estado.isBlank() || "todos".equals(estado)
+                        || estado.equals(u.getEstado()))
+                .filter(u -> buscado.isEmpty()
+                        || (u.getNombres() + " " + u.getApellidos() + " " + u.getCorreo())
+                                .toLowerCase(Locale.ROOT).contains(buscado))
+                .sorted(java.util.Comparator.comparing(Usuario::getId))
+                .toList();
+    }
+
+    /** Usuario que inició sesión (con su empresa), para las páginas web. */
+    @Transactional(readOnly = true)
+    public Usuario buscarPorCorreo(String correo) {
+        return usuarioRepository.findByCorreo(correo)
+                .flatMap(u -> usuarioRepository.findById(u.getId()))
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No existe un usuario con el correo " + correo + "."));
     }
 
     /** true si hay al menos un administrador del sistema que puede iniciar sesión. */

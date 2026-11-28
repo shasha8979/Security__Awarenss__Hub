@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<!-- Dashboard del administrador. Mismo HTML que frontend/Interface_Administrador/panel.php -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: cabeza('Panel Administrador', null)}"></head>
+<body>
+<div class="admin-layout">
+
+    <aside th:replace="~{fragments/layout :: barraLateral('panel')}"></aside>
+
+    <main class="admin-main">
+        <header th:replace="~{fragments/layout :: barraSuperior('Panel Administrador')}"></header>
+
+        <section class="admin-content">
+            <div class="admin-view" th:with="r=${resumen}">
+
+                <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+                <div class="dashboard-heading">
+                    <div>
+                        <span class="section-label">PANEL ADMINISTRATIVO</span>
+                        <h2>Dashboard</h2>
+                        <p>Consulta y administra la información general de Security Awareness Hub.</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-cards">
+                    <div class="dashboard-card">
+                        <div class="card-icon">♙</div>
+                        <div>
+                            <span>USUARIOS</span>
+                            <strong th:text="${r.usuariosTotal()}">0</strong>
+                            <small>Usuarios registrados</small>
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <div class="card-icon">▣</div>
+                        <div>
+                            <span>CURSOS</span>
+                            <strong th:text="${r.cursosTotal()}">0</strong>
+                            <small>Cursos disponibles</small>
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <div class="card-icon">✓</div>
+                        <div>
+                            <span>EVALUACIONES</span>
+                            <strong th:text="${r.evaluacionesTotal()}">0</strong>
+                            <small>Evaluaciones creadas</small>
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <div class="card-icon">%</div>
+                        <div>
+                            <span>COMPLETADO</span>
+                            <strong th:text="${r.asignacionesTotal() == 0 ? 0 : (r.asignacionesCompletadas() * 100 / r.asignacionesTotal())} + '%'">0%</strong>
+                            <small>Asignaciones completadas</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+
+                    <div class="dashboard-panel">
+                        <div class="panel-header">
+                            <div>
+                                <span class="section-label">RESUMEN</span>
+                                <h3>Actividad general</h3>
+                            </div>
+                            <span class="card-period">Actual</span>
+                        </div>
+                        <div class="dashboard-summary">
+                            <div class="summary-item">
+                                <div class="summary-icon">✓</div>
+                                <div>
+                                    <span>Estudiantes activos</span>
+                                    <strong th:text="${r.estudiantesActivos()} + ' de ' + ${r.estudiantes()}">0</strong>
+                                </div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-icon">▣</div>
+                                <div>
+                                    <span>Cursos activos</span>
+                                    <strong th:text="${r.cursosActivos()}">0</strong>
+                                </div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-icon">◉</div>
+                                <div>
+                                    <span>Empresas activas</span>
+                                    <strong th:text="${r.empresasActivas()} + ' de ' + ${r.empresasTotal()}">0</strong>
+                                </div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-icon">%</div>
+                                <div>
+                                    <span>Asignaciones (pendientes · en progreso · completadas)</span>
+                                    <strong th:text="${r.asignacionesPendientes()} + ' · ' + ${r.asignacionesEnProgreso()} + ' · ' + ${r.asignacionesCompletadas()}">0</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-panel">
+                        <div class="panel-header">
+                            <div>
+                                <span class="section-label">ADMINISTRACIÓN</span>
+                                <h3>Acciones rápidas</h3>
+                            </div>
+                        </div>
+                        <div class="quick-actions">
+                            <a th:href="@{/usuarios}" class="quick-action">
+                                <span class="quick-action-icon">♙</span>
+                                <span><strong>Gestionar usuarios</strong><small>Registrar, editar o cargar por CSV</small></span>
+                                <span class="quick-action-arrow">→</span>
+                            </a>
+                            <a th:href="@{/cursos}" class="quick-action">
+                                <span class="quick-action-icon">▣</span>
+                                <span><strong>Gestionar cursos</strong><small>Administrar cursos disponibles</small></span>
+                                <span class="quick-action-arrow">→</span>
+                            </a>
+                            <a th:href="@{/asignaciones}" class="quick-action">
+                                <span class="quick-action-icon">◉</span>
+                                <span><strong>Asignar capacitaciones</strong><small>Cursos y evaluaciones a estudiantes</small></span>
+                                <span class="quick-action-arrow">→</span>
+                            </a>
+                            <a th:href="@{/reportes}" class="quick-action">
+                                <span class="quick-action-icon">▤</span>
+                                <span><strong>Ver reportes</strong><small>Avance por curso, empresa y estudiante</small></span>
+                                <span class="quick-action-arrow">→</span>
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="dashboard-panel">
+                    <div class="panel-header">
+                        <div>
+                            <span class="section-label">SISTEMA</span>
+                            <h3>Información general</h3>
+                        </div>
+                        <span class="card-period">Security Awareness Hub</span>
+                    </div>
+                    <div class="system-info">
+                        <div class="system-info-item"><span>Plataforma</span><strong>Security Awareness Hub</strong></div>
+                        <div class="system-info-item"><span>Tecnología</span><strong>Java 21 · Spring Boot · Thymeleaf</strong></div>
+                        <div class="system-info-item"><span>Gestión</span><strong>Usuarios, empresas, cursos y evaluaciones</strong></div>
+                        <div class="system-info-item"><span>Base de datos</span><strong>MariaDB / MySQL</strong></div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>

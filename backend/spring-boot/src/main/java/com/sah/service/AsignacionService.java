@@ -271,6 +271,59 @@ public class AsignacionService {
         return guardada;
     }
 
+    // FILTRAR ASIGNACIONES (pagina web)
+
+    /** Asignaciones visibles para el rol actual, filtradas por estado y tipo (null = todos). */
+    public List<Asignacion> listarAsignaciones(Asignacion.Estado estado, Asignacion.Tipo tipo) {
+        return listarAsignaciones().stream()
+                .filter(a -> estado == null || a.getEstado() == estado)
+                .filter(a -> tipo == null || a.getTipo() == tipo)
+                .sorted(java.util.Comparator.comparing(Asignacion::getId).reversed())
+                .toList();
+    }
+
+    // OPCIONES DEL FORMULARIO DE ASIGNACION
+
+    /**
+     * Estudiantes activos a los que el usuario actual puede asignar:
+     * todos (admin) o solo los de su empresa (admin_empresa).
+     */
+    public List<Usuario> estudiantesAsignables() {
+
+        Usuario actual = obtenerUsuarioActual();
+
+        List<Usuario> candidatos;
+
+        if ("admin_empresa".equalsIgnoreCase(actual.getRol())) {
+            if (actual.getEmpresa() == null) {
+                return List.of();
+            }
+            candidatos = usuarioRepository.findByEmpresa_IdAndRol(
+                    actual.getEmpresa().getId(), "empleado");
+        } else {
+            candidatos = usuarioRepository.findByRol("empleado");
+        }
+
+        return candidatos.stream()
+                .filter(u -> "activo".equalsIgnoreCase(u.getEstado()))
+                .sorted(java.util.Comparator.comparing(Usuario::getNombres))
+                .toList();
+    }
+
+    /** Cursos activos que se pueden asignar. */
+    public List<Curso> cursosAsignables() {
+        return cursoRepository.findAll().stream()
+                .filter(c -> c.getEstado() == Curso.EstadoCurso.activo)
+                .toList();
+    }
+
+    /** Evaluaciones activas que se pueden asignar. */
+    public List<Evaluacion> evaluacionesAsignables() {
+        return evaluacionRepository.findAll().stream()
+                .filter(e -> e.getEstado() == Evaluacion.EstadoEvaluacion.activo)
+                .toList();
+    }
+
     // REGISTRAR AVANCE DEL ESTUDIANTE
 
     /**

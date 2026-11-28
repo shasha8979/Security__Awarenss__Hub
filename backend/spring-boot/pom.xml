@@ -21,34 +21,22 @@
 
     <properties>
         <java.version>21</java.version>
-        <vaadin.version>25.3.5</vaadin.version>
+        <!-- Carpeta del frontend original: su CSS se usa tal cual en las vistas Java -->
+        <frontend.dir>${project.basedir}/../../frontend</frontend.dir>
     </properties>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>com.vaadin</groupId>
-                <artifactId>vaadin-bom</artifactId>
-                <version>${vaadin.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
     <dependencies>
 
-        <!-- Interfaz web Vaadin -->
+        <!-- Web MVC: API REST (@RestController) y páginas (@Controller) -->
         <dependency>
-            <groupId>com.vaadin</groupId>
-            <artifactId>vaadin-spring-boot-starter</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
         </dependency>
 
-        <!-- Servidor de desarrollo Vaadin -->
+        <!-- Vistas HTML con Thymeleaf (ejercicio Gestor de Tareas) -->
         <dependency>
-            <groupId>com.vaadin</groupId>
-            <artifactId>vaadin-dev</artifactId>
-            <optional>true</optional>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
         <!-- Persistencia -->
@@ -113,6 +101,33 @@
     </dependencies>
 
     <build>
+
+        <!--
+            Además de src/main/resources, se copian a static/ los CSS e
+            imágenes del frontend original. Así las vistas Thymeleaf usan
+            exactamente los mismos archivos (una sola fuente de estilos):
+              frontend/Interface_Administrador/css -> /admin/css/
+              frontend/authentication/css          -> /auth/css/
+              frontend/authentication/assets       -> /auth/assets/
+        -->
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>${frontend.dir}/Interface_Administrador/css</directory>
+                <targetPath>static/admin/css</targetPath>
+            </resource>
+            <resource>
+                <directory>${frontend.dir}/authentication/css</directory>
+                <targetPath>static/auth/css</targetPath>
+            </resource>
+            <resource>
+                <directory>${frontend.dir}/authentication/assets</directory>
+                <targetPath>static/auth/assets</targetPath>
+            </resource>
+        </resources>
+
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

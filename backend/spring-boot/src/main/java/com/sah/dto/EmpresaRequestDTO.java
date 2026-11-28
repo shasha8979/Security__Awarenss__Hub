@@ -40,6 +40,17 @@ public record EmpresaRequestDTO(
         Empresa.TipoEmpresa tipo
 ) {
 
+    /** Formulario vacío para registrar (página web). */
+    public static EmpresaRequestDTO vacio() {
+        return new EmpresaRequestDTO(null, null, null, null, null, Empresa.TipoEmpresa.privada);
+    }
+
+    /** Datos actuales para el formulario de edición. */
+    public static EmpresaRequestDTO desde(Empresa empresa) {
+        return new EmpresaRequestDTO(empresa.getNombre(), empresa.getNit(), empresa.getCorreo(),
+                empresa.getTelefono(), empresa.getDireccion(), empresa.getTipo());
+    }
+
     public Empresa aEntidad() {
         Empresa empresa = new Empresa();
         empresa.setNombre(nombre);

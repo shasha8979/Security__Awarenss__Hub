@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<!-- Lista de empresas. Mismo HTML y CSS que frontend/Interface_Administrador/empresas.php -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: cabeza('Empresas', 'empresas.css')}"></head>
+<body>
+<div class="admin-layout">
+
+    <aside th:replace="~{fragments/layout :: barraLateral('empresas')}"></aside>
+
+    <main class="admin-main">
+        <header th:replace="~{fragments/layout :: barraSuperior('Empresas')}"></header>
+
+        <section class="admin-content">
+            <div class="admin-view">
+
+                <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+                <div class="dashboard-heading">
+                    <div>
+                        <span class="section-label">GESTIÓN DE EMPRESAS</span>
+                        <h2>Empresas</h2>
+                        <p>Administra las organizaciones registradas en la plataforma.</p>
+                    </div>
+                    <a th:href="@{/empresas/nueva}" class="admin-button">+ Nueva empresa</a>
+                </div>
+
+                <form th:action="@{/empresas}" method="get" class="users-toolbar">
+                    <div class="search-box">
+                        <span class="search-icon">⌕</span>
+                        <input type="search" name="search" th:value="${search}"
+                            placeholder="Buscar por nombre, NIT o correo...">
+                    </div>
+                    <select class="users-filter" name="estado">
+                        <option value="todos" th:selected="${estado == 'todos'}">Todos los estados</option>
+                        <option value="activo" th:selected="${estado == 'activo'}">Activas</option>
+                        <option value="inactivo" th:selected="${estado == 'inactivo'}">Inactivas</option>
+                    </select>
+                    <button type="submit" class="admin-button">Buscar</button>
+                </form>
+
+                <div class="dashboard-card users-table-card">
+                    <div class="card-header">
+                        <div>
+                            <span class="section-label">DIRECTORIO</span>
+                            <h3>Empresas registradas</h3>
+                        </div>
+                        <span class="card-period" th:text="${#lists.size(empresas)} + ' empresa(s)'">0</span>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table class="users-table">
+                            <thead>
+                                <tr>
+                                    <th>EMPRESA</th>
+                                    <th>NIT</th>
+                                    <th>TIPO</th>
+                                    <th>TELÉFONO</th>
+                                    <th>ESTADO</th>
+                                    <th>ACCIONES</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(empresas)}">
+                                    <td colspan="6" class="loading-users">No se encontraron empresas.</td>
+                                </tr>
+                                <tr th:each="e : ${empresas}">
+                                    <td>
+                                        <strong th:text="${e.nombre}">Empresa</strong><br>
+                                        <small th:text="${e.correo}">correo</small>
+                                    </td>
+                                    <td th:text="${e.nit}">NIT</td>
+                                    <td th:text="${#strings.capitalize(e.tipo.name())}">Privada</td>
+                                    <td th:text="${e.telefono != null and !#strings.isEmpty(e.telefono)} ? ${e.telefono} : '—'">—</td>
+                                    <td>
+                                        <span class="badge" th:classappend="'badge-' + ${e.estado.name()}"
+                                            th:text="${e.estado.name() == 'activo'} ? 'Activa' : 'Inactiva'">Activa</span>
+                                    </td>
+                                    <td class="table-actions">
+                                        <a th:href="@{/empresas/editar/{id}(id=${e.id})}" class="link-action">Editar</a>
+                                        <form th:action="@{/empresas/{id}/estado(id=${e.id})}" method="post">
+                                            <input type="hidden" name="estado"
+                                                th:value="${e.estado.name() == 'activo'} ? 'inactivo' : 'activo'">
+                                            <button type="submit" class="link-action"
+                                                th:text="${e.estado.name() == 'activo'} ? 'Desactivar' : 'Activar'">Desactivar</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="table-footer">
+                        <span th:text="${#lists.size(empresas)} + ' empresa(s) en total'">0</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>

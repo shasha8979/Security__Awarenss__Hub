@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<!-- Crear / editar evaluación. Mismo HTML y CSS que el formulario de evaluaciones.php -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: cabeza(${titulo}, 'evaluaciones.css')}"></head>
+<body>
+<div class="admin-layout">
+
+    <aside th:replace="~{fragments/layout :: barraLateral('evaluaciones')}"></aside>
+
+    <main class="admin-main">
+        <header th:replace="~{fragments/layout :: barraSuperior('Evaluaciones')}"></header>
+
+        <section class="admin-content">
+            <div class="admin-view">
+
+                <div class="dashboard-heading">
+                    <div>
+                        <span class="section-label">GESTIÓN DE EVALUACIONES</span>
+                        <h2>Evaluaciones</h2>
+                        <p>Administra las evaluaciones de cada curso y su porcentaje de aprobación.</p>
+                    </div>
+                </div>
+
+                <div class="admin-alert admin-alert-error" th:if="${errores['general']}" th:text="${errores['general']}"></div>
+
+                <div class="dashboard-card users-table-card" style="padding:24px;">
+                    <div class="card-header">
+                        <div>
+                            <span class="section-label">ADMINISTRACIÓN</span>
+                            <h3 th:text="${titulo}">Nueva evaluación</h3>
+                        </div>
+                    </div>
+
+                    <form th:action="@{/evaluaciones/guardar}" method="post">
+
+                        <input type="hidden" name="id" th:if="${id != null}" th:value="${id}">
+
+                        <div class="form-group">
+                            <label for="evaluacionCurso">Curso</label>
+                            <select id="evaluacionCurso" name="cursoId" required>
+                                <option value="">Selecciona un curso...</option>
+                                <option th:each="c : ${cursos}" th:value="${c.id}" th:text="${c.titulo}"
+                                    th:selected="${evaluacion.cursoId() == c.id}">Curso</option>
+                            </select>
+                            <small class="field-hint" th:if="${errores['cursoId']}" th:text="${errores['cursoId']}"></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="evaluacionTitulo">Título</label>
+                            <input type="text" id="evaluacionTitulo" name="titulo" maxlength="150"
+                                th:value="${evaluacion.titulo()}" required>
+                            <small class="field-hint" th:if="${errores['titulo']}" th:text="${errores['titulo']}"></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="evaluacionDescripcion">Descripción</label>
+                            <textarea id="evaluacionDescripcion" name="descripcion" rows="4"
+                                th:text="${evaluacion.descripcion()}"></textarea>
+                            <small class="field-hint" th:if="${errores['descripcion']}" th:text="${errores['descripcion']}"></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="evaluacionPorcentaje">Porcentaje de aprobación (%)</label>
+                            <input type="number" id="evaluacionPorcentaje" name="porcentajeAprobacion" min="0" max="100"
+                                th:value="${evaluacion.porcentajeAprobacion()}" required>
+                            <small class="field-hint" th:if="${errores['porcentajeAprobacion']}" th:text="${errores['porcentajeAprobacion']}"></small>
+                        </div>
+
+                        <div class="form-actions">
+                            <a th:href="@{/evaluaciones}" class="admin-secondary-button">Cancelar</a>
+                            <button type="submit" class="admin-button"
+                                th:text="${id == null} ? 'Crear evaluación' : 'Guardar cambios'">Crear evaluación</button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>

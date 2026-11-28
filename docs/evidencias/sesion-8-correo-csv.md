@@ -12,7 +12,7 @@
 | Fila del CSV | `dto/FilaUsuarioCsvDTO.java` | Bean Validation (`@NotBlank`, `@Email`, `@Size`), las mismas reglas que `UsuarioRequestDTO` |
 | Resultado | `dto/ResultadoCargaDTO.java`, `dto/ErrorFilaDTO.java` | Resumen: filas leídas, creadas, rechazadas y motivo por línea |
 | Endpoint | `controller/UsuarioController.java` | `POST /api/usuarios/carga-csv` (multipart, campo `archivo`) — solo ADMIN |
-| Interfaz | `views/UsuarioView.java` | Sección "Carga masiva de usuarios (CSV)" con el componente `Upload` de Vaadin |
+| Interfaz | `controller/UsuarioWebController.java`, `templates/usuarios/lista.html` | Formulario de carga (multipart con token CSRF) en la página de usuarios. Hasta el 2026-11-27 era una vista Vaadin |
 | Correo | `notificacion/CorreoService.java` | Envía con `JavaMailSender`; configuración SMTP por variables de entorno |
 | Eventos | `notificacion/UsuarioRegistradoEvento.java`, `AsignacionCreadaEvento.java` | Datos del correo (la clave temporal no aparece en `toString()`) |
 | Oyente | `notificacion/NotificacionCorreoListener.java` | `@TransactionalEventListener(AFTER_COMMIT)` + `@Async` |
@@ -67,7 +67,7 @@ Si el servidor SMTP falla, la operación principal **no** se revierte: se regist
 
 ## 4. Pruebas automáticas
 
-Comando: `.\mvnw.cmd clean test` → **37 pruebas, 0 fallos** (2026-11-27).
+Comando: `.\mvnw.cmd clean test` → **49 pruebas, 0 fallos** (2026-11-27).
 
 | Clase | Tipo | Pruebas | Qué demuestra |
 |---|---|---|---|
@@ -110,7 +110,7 @@ claro en lugar de mostrar fallas falsas (ver H12 en `docs/calidad/hallazgos-y-ri
 
 ## 6. Pruebas de aceptación en el navegador (2026-11-27)
 
-Las ejecutó el equipo con la interfaz Vaadin; los resultados se verificaron en MariaDB.
+Las ejecutó el equipo con la interfaz Vaadin (antes de pasar a Thymeleaf, D18); los resultados se verificaron en MariaDB. Los mismos flujos se prueban ahora en `WebIntegracionTest`.
 
 | # | Rol | Pasos | Esperado | Obtenido |
 |---|---|---|---|---|

@@ -74,3 +74,22 @@
     border: none;
     padding: 0;
 }
+/* =========================================================
+   ESTADOS DE ASIGNACIONES (pendiente / en progreso / completada)
+   Los usan el panel PHP y las vistas Thymeleaf de Spring Boot.
+   ========================================================= */
+
+.badge-pendiente {
+    background: rgba(245, 158, 11, 0.14);
+    color: #fbbf24;
+}
+
+.badge-progreso {
+    background: rgba(56, 189, 248, 0.14);
+    color: #38bdf8;
+}
+
+.badge-completado {
+    background: rgba(0, 255, 136, 0.14);
+    color: #00d98e;
+}

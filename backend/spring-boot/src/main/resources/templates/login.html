@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<!--
+    Inicio de sesión. Mismo HTML y CSS que frontend/authentication/login.php.
+    El formulario envía username y password por POST a /login (Spring
+    Security formLogin); th:action agrega el token CSRF automáticamente.
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Awareness Hub - Iniciar sesión</title>
+    <link rel="stylesheet" th:href="@{/auth/css/login.css}">
+</head>
+<body>
+
+    <div class="login-background"></div>
+
+    <main class="login-container">
+        <section class="login-card">
+
+            <!-- PANEL IZQUIERDO - CARRUSEL -->
+            <section class="login-visual">
+                <div class="carousel">
+                    <div class="carousel-slide slide-1"></div>
+                    <div class="carousel-slide slide-2"></div>
+                    <div class="carousel-slide slide-3"></div>
+                </div>
+                <div class="carousel-indicators">
+                    <span class="indicator active"></span>
+                    <span class="indicator"></span>
+                    <span class="indicator"></span>
+                </div>
+            </section>
+
+            <!-- PANEL DERECHO - LOGIN -->
+            <section class="login-form-panel">
+                <div class="login-form-content">
+
+                    <div class="mobile-logo">
+                        <span>SECURITY</span>
+                        <strong>AWARENESS</strong>
+                    </div>
+
+                    <div class="login-heading">
+                        <span class="welcome-small">SECURITY AWARENESS HUB</span>
+                        <h1>Bienvenido<span>.</span></h1>
+                        <p class="login-description">
+                            Inicia sesión para continuar con tu
+                            capacitación en seguridad digital.
+                        </p>
+                    </div>
+
+                    <form th:action="@{/login}" method="post">
+
+                        <div class="login-message error" th:if="${param.error}">
+                            Correo o contraseña incorrectos. Si tu cuenta está
+                            inactiva, comunícate con el administrador.
+                        </div>
+
+                        <div class="login-message success" th:if="${param.logout}">
+                            Sesión cerrada correctamente.
+                        </div>
+
+                        <div class="form-group">
+                            <label for="username">Correo electrónico</label>
+                            <div class="input-wrapper">
+                                <span class="input-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+                                        <polyline points="3,7 12,13 21,7"></polyline>
+                                    </svg>
+                                </span>
+                                <input type="email" id="username" name="username"
+                                    placeholder="Ingresa tu correo" required autofocus>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password">Contraseña</label>
+                            <div class="input-wrapper">
+                                <span class="input-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="4" y="10" width="16" height="11" rx="2"></rect>
+                                        <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
+                                    </svg>
+                                </span>
+                                <input type="password" id="password" name="password"
+                                    placeholder="Ingresa tu contraseña" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="login-button">Iniciar sesión</button>
+
+                    </form>
+
+                </div>
+            </section>
+
+        </section>
+    </main>
+
+</body>
+</html>
